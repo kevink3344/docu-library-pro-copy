@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { db } from '@/api/db';
+import { db, uploadKBBDocumentFile } from '@/api/db';
 import { useOrg } from '@/lib/OrgContext';
 import { ArrowLeft, Upload, Link as LinkIcon, X, Archive } from 'lucide-react';
 import CustomFieldInput from '@/components/documents/CustomFieldInput';
@@ -26,7 +26,7 @@ export default function DocumentForm() {
   const navigate = useNavigate();
   const { currentOrg, user } = useOrg();
 
-  const [form, setForm] = useState({ tags: [], location: [], department: [], custom_field_values: {}, visibility: 'everyone', allowed_team_ids: [] });
+  const [form, setForm] = useState({ tags: [], location: [], department: [], custom_field_values: {}, visibility: 'everyone', allowed_team_ids: [], file_url: '', file_type: '' });
   const [fieldConfig, setFieldConfig] = useState(null);
   const [customFields, setCustomFields] = useState([]);
   const [teams, setTeams] = useState([]);
@@ -79,11 +79,10 @@ export default function DocumentForm() {
   const set = (key, val) => setForm(prev => ({ ...prev, [key]: val }));
 
   const handleFileUpload = async (file) => {
-    // File hosting not yet configured — store object URL for preview only
     setUploading(true);
     const ext = file.name.split('.').pop().toLowerCase();
     const fileType = ext === 'pdf' ? 'pdf' : ['doc', 'docx'].includes(ext) ? 'word' : ['xls', 'xlsx'].includes(ext) ? 'excel' : 'file';
-    set('file_url', URL.createObjectURL(file));
+    set('file_url', file.name);
     set('file_type', fileType);
     setFileObj(file);
     setUploading(false);
@@ -100,12 +99,25 @@ export default function DocumentForm() {
   const handleSave = async () => {
     if (!form.title) return;
     setSaving(true);
-    const payload = { ...form, org_id: currentOrg.id, creator_user_id: user?.id };
+    const payload = {
+      ...form,
+      org_id: currentOrg.id,
+      creator_user_id: user?.id,
+      ...(form.file_url ? {} : { file_blob: null }),
+    };
+
+    let docId = id;
     if (isEdit) {
       await db.KBBDocument.update(id, payload);
     } else {
-      await db.KBBDocument.create(payload);
+      const doc = await db.KBBDocument.create(payload);
+      docId = doc.id;
     }
+
+    if (fileObj) {
+      await uploadKBBDocumentFile(docId, fileObj);
+    }
+
     setSaving(false);
     navigate('/');
   };
@@ -134,7 +146,7 @@ export default function DocumentForm() {
               ) : form.file_url ? (
                 <div className="flex items-center justify-center gap-2">
                   <span className="text-sm text-primary truncate max-w-[200px]">{fileObj?.name || 'File uploaded'}</span>
-                  <button type="button" onClick={(e) => { e.preventDefault(); set('file_url', ''); set('file_type', ''); }} className="text-muted-foreground hover:text-foreground"><X className="w-4 h-4" /></button>
+                  <button type="button" onClick={(e) => { e.preventDefault(); set('file_url', ''); set('file_type', ''); setFileObj(null); }} className="text-muted-foreground hover:text-foreground"><X className="w-4 h-4" /></button>
                 </div>
               ) : (
                 <div className="flex flex-col items-center gap-1">

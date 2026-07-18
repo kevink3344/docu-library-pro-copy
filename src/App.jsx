@@ -18,7 +18,6 @@ import AppLayout from '@/components/layout/AppLayout';
 import Dashboard from '@/pages/Dashboard';
 import DocumentForm from '@/pages/DocumentForm';
 import DocumentView from '@/pages/DocumentView';
-import Organizations from '@/pages/Organizations';
 import Settings from '@/pages/Settings';
 
 const AuthenticatedApp = () => {
@@ -47,7 +46,6 @@ const AuthenticatedApp = () => {
             <Route path="/documents/:id" element={<DocumentView />} />
             <Route path="/documents/new" element={<DocumentForm />} />
             <Route path="/documents/:id/edit" element={<DocumentForm />} />
-            <Route path="/organizations" element={<Organizations />} />
             <Route path="/settings" element={<Settings />} />
           </Route>
         ) : (

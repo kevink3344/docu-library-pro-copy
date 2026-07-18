@@ -204,7 +204,7 @@ export default function Dashboard() {
       <div className="p-8 text-center">
         <p className="text-muted-foreground mb-4">No organization selected. Create one to get started.</p>
         {user?.role === 'admin' && (
-          <Link to="/organizations" className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors" style={{ borderRadius: 2 }}>
+          <Link to="/settings" className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors" style={{ borderRadius: 2 }}>
             Manage Organizations
           </Link>
         )}

@@ -85,8 +85,9 @@ CREATE TABLE IF NOT EXISTS kbb_documents (
   description          TEXT,
   document_id          TEXT,                     -- custom document identifier
   link_url             TEXT,
-  file_url             TEXT,
+  file_url             TEXT,                     -- original filename when file is uploaded
   file_type            TEXT,                     -- pdf | word | excel | google-doc | url
+  file_blob            BLOB,
   tags                 TEXT NOT NULL DEFAULT '[]',          -- JSON array of strings
   location             TEXT NOT NULL DEFAULT '[]',          -- JSON array of strings (site names)
   department           TEXT NOT NULL DEFAULT '[]',          -- JSON array of strings

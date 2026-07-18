@@ -1,4 +1,4 @@
-import { fetchApi } from './apiClient';
+import { fetchApi, API_URL } from './apiClient';
 
 const ENTITY_NAMES = [
   'Organization',
@@ -94,4 +94,27 @@ export async function removeOrgMember(memberId) {
     method: 'POST',
     body: JSON.stringify({ memberId }),
   });
+}
+
+export async function uploadKBBDocumentFile(id, file) {
+  const formData = new FormData();
+  formData.append('file', file);
+  const res = await fetch(`${API_URL}/api/kbb_documents/${id}/file`, {
+    method: 'POST',
+    body: formData,
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.error || `HTTP ${res.status}`);
+  }
+  return res.json();
+}
+
+export async function downloadKBBDocumentFile(id) {
+  const res = await fetch(`${API_URL}/api/kbb_documents/${id}/file`);
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.error || `HTTP ${res.status}`);
+  }
+  return res.blob();
 }

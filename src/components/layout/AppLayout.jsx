@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useLocation, Outlet } from 'react-router-dom';
 import { useAuth } from '@/lib/AuthContext';
 import {
-  BookOpen, Building2, Settings, Menu, X,
+  BookOpen, Settings, Menu, X,
   LogOut, Sun, Moon, LogIn
 } from 'lucide-react';
 import NotificationBell from '@/components/notifications/NotificationBell';
@@ -21,7 +21,6 @@ export default function AppLayout() {
 
   const navItems = [
     { to: '/', label: 'Knowledge Base', icon: BookOpen },
-    { to: '/organizations', label: 'Organizations', icon: Building2, superAdminOnly: true },
     { to: '/settings', label: 'Settings', icon: Settings },
   ];
 

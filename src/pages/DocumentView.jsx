@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { db } from '@/api/db';
+import { db, downloadKBBDocumentFile } from '@/api/db';
+import { API_URL } from '@/api/apiClient';
 import { useOrg } from '@/lib/OrgContext';
 import { ArrowLeft, Pencil, Trash2, ExternalLink, FileText, Eye } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
@@ -22,7 +23,16 @@ export default function DocumentView() {
   const [customFields, setCustomFields] = useState([]);
   const [orderedFields, setOrderedFields] = useState([]);
   const [showPreview, setShowPreview] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [previewError, setPreviewError] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    return () => {
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+    };
+  }, [previewUrl]);
 
   useEffect(() => {
     const load = async () => {
@@ -68,6 +78,29 @@ export default function DocumentView() {
     navigate('/');
   };
 
+  const openPreview = async () => {
+    if (!id) return;
+    setShowPreview(true);
+    setPreviewLoading(true);
+    setPreviewError(null);
+    try {
+      const blob = await downloadKBBDocumentFile(id);
+      const url = URL.createObjectURL(blob);
+      setPreviewUrl(url);
+    } catch (err) {
+      setPreviewError(err.message || 'Failed to load file');
+    } finally {
+      setPreviewLoading(false);
+    }
+  };
+
+  const closePreview = () => {
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    setPreviewUrl(null);
+    setPreviewError(null);
+    setShowPreview(false);
+  };
+
   const canEdit = user?.role === 'admin' || currentOrg?.admin_user_ids?.includes(user?.id) || doc?.creator_user_id === user?.id;
 
   const renderFieldValue = (field) => {
@@ -109,7 +142,7 @@ export default function DocumentView() {
         </a>
       ) : <span className="text-muted-foreground text-sm">—</span>;
       case 'file': return doc?.file_url ? (
-        <button onClick={() => setShowPreview(true)} className="inline-flex items-center gap-1.5 text-primary text-sm hover:underline">
+        <button onClick={openPreview} className="inline-flex items-center gap-1.5 text-primary text-sm hover:underline">
           <Eye className="w-3.5 h-3.5" /> Preview File
         </button>
       ) : <span className="text-muted-foreground text-sm">—</span>;
@@ -179,7 +212,15 @@ export default function DocumentView() {
       </div>
 
       {showPreview && doc?.file_url && (
-        <DocumentPreview url={doc.file_url} fileType={doc.file_type} onClose={() => setShowPreview(false)} />
+        <DocumentPreview
+          url={previewUrl}
+          downloadUrl={`${API_URL}/api/kbb_documents/${id}/file`}
+          fileName={doc.file_url}
+          fileType={doc.file_type}
+          loading={previewLoading}
+          error={previewError}
+          onClose={closePreview}
+        />
       )}
     </div>
   );

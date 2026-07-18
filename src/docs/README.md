@@ -88,12 +88,15 @@ src/
 │   ├── Dashboard.jsx            # Main document list view
 │   ├── DocumentForm.jsx         # Create / edit a document
 │   ├── DocumentView.jsx         # Read-only document detail
-│   ├── Organizations.jsx        # Super Admin org management
 │   └── settings/
-│       ├── Settings.jsx         # Settings shell with tab nav
-│       ├── FieldManagement.jsx  # Manage system & custom fields
-│       ├── LayoutCustomization.jsx # Drag-and-drop field ordering
-│       └── TeamManagement.jsx   # Create/edit teams & membership
+│       ├── Settings.jsx              # Settings shell with collapsible sections
+│       ├── FieldManagement.jsx       # Manage system & custom fields
+│       ├── LayoutCustomization.jsx     # Drag-and-drop field ordering
+│       ├── TeamManagement.jsx        # Create/edit teams & membership
+│       ├── LocationManagement.jsx      # Manage sites/locations
+│       ├── DepartmentManagement.jsx    # Manage departments
+│       ├── MemberManagement.jsx        # Manage users
+│       └── OrganizationManagement.jsx  # Super Admin org management
 ├── functions/
 │   └── renewalNotifications.js  # Scheduled backend function for renewal emails
 ├── entities/                    # JSON schemas for Base44 entities
@@ -138,8 +141,9 @@ A knowledge base item owned by an organization.
 | `description` | string | Summary / notes |
 | `document_id` | string | Custom reference ID |
 | `link_url` | string | External URL or Google Doc link |
-| `file_url` | string | Uploaded file URL |
+| `file_url` | string | Original uploaded filename |
 | `file_type` | string | `pdf`, `word`, `excel`, `google-doc`, `url` |
+| `file_blob` | BLOB | Binary file content stored in Turso |
 | `tags` | string[] | Free-text tags |
 | `location` | string[] | Location labels |
 | `department` | string[] | Department labels |
@@ -229,8 +233,7 @@ In-app alert for renewal events.
 | `/documents/new` | `DocumentForm` | Authenticated |
 | `/documents/:id` | `DocumentView` | Authenticated |
 | `/documents/:id/edit` | `DocumentForm` | Authenticated |
-| `/organizations` | `Organizations` | Super Admin only |
-| `/settings` | `Settings` (redirects to `/settings/fields`) | Org Admin |
+| `/settings` | `Settings` (collapsible sections) | Org Admin |
 | `/settings/fields` | `FieldManagement` | Org Admin |
 | `/settings/layout` | `LayoutCustomization` | Org Admin |
 | `/settings/teams` | `TeamManagement` | Org Admin |
@@ -242,7 +245,7 @@ In-app alert for renewal events.
 ### AppLayout
 The persistent shell wrapping all authenticated pages. Contains:
 - **Top navigation bar** — logo, notification bell, dark/light mode toggle, user avatar + name, logout button.
-- **Left sidebar** (desktop) — links to Knowledge Base, Organizations (admin only), and Settings.
+- **Left sidebar** (desktop) — links to Knowledge Base and Settings.
 - **Mobile overlay nav** — hamburger-triggered slide-in nav.
 
 ### OrgSwitcher

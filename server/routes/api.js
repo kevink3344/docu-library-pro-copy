@@ -1,4 +1,6 @@
 import { Router } from 'express';
+import multer from 'multer';
+import sql from '../db.js';
 import {
   db,
   getOrgsForUser,
@@ -11,6 +13,77 @@ import {
 
 const router = Router();
 const entityNames = Object.keys(db);
+
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10 MB
+});
+
+function getFileContentType(fileType) {
+  switch (fileType) {
+    case 'pdf': return 'application/pdf';
+    case 'word': return 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+    case 'excel': return 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+    default: return 'application/octet-stream';
+  }
+}
+
+function getFileTypeFromName(name) {
+  const ext = name.split('.').pop().toLowerCase();
+  if (ext === 'pdf') return 'pdf';
+  if (['doc', 'docx'].includes(ext)) return 'word';
+  if (['xls', 'xlsx'].includes(ext)) return 'excel';
+  return 'file';
+}
+
+// File upload/download for KBB documents (stored as BLOBs in Turso)
+router.post('/kbb_documents/:id/file', upload.single('file'), async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const file = req.file;
+    if (!file) return res.status(400).json({ error: 'No file uploaded' });
+
+    const fileType = getFileTypeFromName(file.originalname);
+    await sql.execute({
+      sql: `UPDATE kbb_documents
+            SET file_blob = :file_blob, file_url = :file_url, file_type = :file_type, updated_date = :updated_date
+            WHERE id = :id`,
+      args: {
+        id,
+        file_blob: file.buffer,
+        file_url: file.originalname,
+        file_type: fileType,
+        updated_date: new Date().toISOString(),
+      },
+    });
+
+    const row = await db.KBBDocument.get(id);
+    res.json(row);
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.get('/kbb_documents/:id/file', async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const rs = await sql.execute({
+      sql: `SELECT file_blob, file_url, file_type FROM kbb_documents WHERE id = :id`,
+      args: { id },
+    });
+    const row = rs.rows[0];
+    if (!row || !row.file_blob) {
+      return res.status(404).json({ error: 'File not found' });
+    }
+
+    const buffer = Buffer.from(row.file_blob);
+    res.setHeader('Content-Type', getFileContentType(row.file_type));
+    res.setHeader('Content-Disposition', `inline; filename="${row.file_url || 'document'}"`);
+    res.send(buffer);
+  } catch (err) {
+    next(err);
+  }
+});
 
 router.get('/:entity', async (req, res, next) => {
   const { entity } = req.params;

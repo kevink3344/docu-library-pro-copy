@@ -1,5 +1,5 @@
 /// <reference types="vite/client" />
-const API_URL = import.meta.env.VITE_API_URL || '';
+export const API_URL = import.meta.env.VITE_API_URL || '';
 
 export async function fetchApi(path, options = {}) {
   const url = `${API_URL}${path}`;

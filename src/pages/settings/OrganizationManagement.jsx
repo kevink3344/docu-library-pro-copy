@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { db } from '@/api/db';
 import { useOrg } from '@/lib/OrgContext';
-import { Plus, Building2, Pencil, Trash2, Users } from 'lucide-react';
+import { Plus, Building2, Pencil, Trash2 } from 'lucide-react';
 
-export default function Organizations() {
+export default function OrganizationManagement() {
   const { orgs, refreshOrgs, user } = useOrg();
   const [allUsers, setAllUsers] = useState([]);
   const [showForm, setShowForm] = useState(false);
@@ -17,7 +17,7 @@ export default function Organizations() {
   }, [user]);
 
   if (user?.role !== 'admin') {
-    return <div className="p-8 text-center text-muted-foreground text-sm">Access restricted to Super Admins.</div>;
+    return <div className="p-4 text-center text-muted-foreground text-sm">Access restricted to Super Admins.</div>;
   }
 
   const openCreate = () => { setForm({ name: '', description: '', admin_user_ids: [] }); setEditOrg(null); setShowForm(true); };
@@ -48,20 +48,15 @@ export default function Organizations() {
   };
 
   return (
-    <div className="p-4 md:p-6 max-w-4xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-xl font-semibold">Organizations</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">Manage KBB Pro instances</p>
-        </div>
+    <div className="space-y-4">
+      <div className="flex justify-end">
         <button onClick={openCreate} className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors" style={{ borderRadius: 2 }}>
           <Plus className="w-4 h-4" /> New Organization
         </button>
       </div>
 
-      {/* Form */}
       {showForm && (
-        <div className="kbb-card p-5 mb-6">
+        <div className="kbb-card p-5">
           <h2 className="text-sm font-semibold mb-4">{editOrg ? 'Edit Organization' : 'Create New Organization'}</h2>
           <div className="space-y-4">
             <div className="space-y-1.5">
@@ -98,7 +93,6 @@ export default function Organizations() {
         </div>
       )}
 
-      {/* List */}
       {orgs.length === 0 ? (
         <div className="kbb-card p-12 text-center">
           <Building2 className="w-8 h-8 text-muted-foreground mx-auto mb-3" />
