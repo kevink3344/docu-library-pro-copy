@@ -1,23 +1,38 @@
 import { useState } from 'react';
 import { useOrg } from '@/lib/OrgContext';
-import { Link, Routes, Route, useLocation, Outlet, Navigate } from 'react-router-dom';
-import { Settings as SettingsIcon, Layers, Layout, Users, MapPin, Building2 } from 'lucide-react';
+import { Layers, Layout, Users, User, MapPin, Building2, ChevronDown } from 'lucide-react';
 import OrgSwitcher from '@/components/layout/OrgSwitcher';
+import FieldManagement from '@/pages/settings/FieldManagement';
+import LayoutCustomization from '@/pages/settings/LayoutCustomization';
+import TeamManagement from '@/pages/settings/TeamManagement';
+import LocationManagement from '@/pages/settings/LocationManagement';
+import DepartmentManagement from '@/pages/settings/DepartmentManagement';
+import MemberManagement from '@/pages/settings/MemberManagement';
 
-const tabs = [
-  { to: '/settings/fields', label: 'Field Management', icon: Layers },
-  { to: '/settings/layout', label: 'Layout', icon: Layout },
-  { to: '/settings/teams', label: 'Teams', icon: Users },
-  { to: '/settings/locations', label: 'Sites', icon: MapPin },
-  { to: '/settings/departments', label: 'Departments', icon: Building2 },
+const sections = [
+  { key: 'fields', label: 'Field Management', icon: Layers, Component: FieldManagement },
+  { key: 'layout', label: 'Layout', icon: Layout, Component: LayoutCustomization },
+  { key: 'teams', label: 'Teams', icon: Users, Component: TeamManagement },
+  { key: 'locations', label: 'Sites', icon: MapPin, Component: LocationManagement },
+  { key: 'departments', label: 'Departments', icon: Building2, Component: DepartmentManagement },
+  { key: 'members', label: 'Users', icon: User, Component: MemberManagement },
 ];
 
 export default function Settings() {
-  const { currentOrg, user, isOrgAdmin } = useOrg();
-  const location = useLocation();
+  const { currentOrg, isOrgAdmin } = useOrg();
+  const [open, setOpen] = useState(new Set(['fields']));
 
   if (!currentOrg) return <div className="p-8 text-center text-muted-foreground text-sm">No organization selected.</div>;
   if (!isOrgAdmin(currentOrg)) return <div className="p-8 text-center text-muted-foreground text-sm">Access restricted to Org Admins.</div>;
+
+  const toggle = (key) => {
+    setOpen(prev => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  };
 
   return (
     <div className="p-4 md:p-6 max-w-4xl mx-auto">
@@ -29,24 +44,30 @@ export default function Settings() {
         <p className="text-sm text-muted-foreground mt-0.5">{currentOrg?.name}</p>
       </div>
 
-      <div className="flex gap-0 border-b border-border mb-6">
-        {tabs.map(({ to, label, icon: Icon }) => (
-          <Link
-            key={to}
-            to={to}
-            className={`flex items-center gap-2 px-4 py-2.5 text-sm border-b-2 transition-colors -mb-px ${
-              location.pathname.startsWith(to)
-                ? 'border-primary text-primary font-medium'
-                : 'border-transparent text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            <Icon className="w-4 h-4" />
-            <span className="hidden sm:inline">{label}</span>
-          </Link>
-        ))}
+      <div className="kbb-card overflow-hidden">
+        {sections.map(({ key, label, icon: Icon, Component }, idx) => {
+          const isOpen = open.has(key);
+          return (
+            <div key={key} className={idx !== 0 ? 'border-t border-border' : ''}>
+              <button
+                onClick={() => toggle(key)}
+                className="w-full flex items-center justify-between px-4 py-3 hover:bg-accent/50 transition-colors"
+              >
+                <div className="flex items-center gap-2.5">
+                  <Icon className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-sm font-medium">{label}</span>
+                </div>
+                <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+              </button>
+              {isOpen && (
+                <div className="px-4 pb-4">
+                  <Component />
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
-
-      <Outlet />
     </div>
   );
 }

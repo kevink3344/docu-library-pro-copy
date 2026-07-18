@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { ChevronDown, Building2 } from 'lucide-react';
 import { useOrg } from '@/lib/OrgContext';
 
-export default function OrgSwitcher({ user }) {
+export default function OrgSwitcher() {
   const { currentOrg, setCurrentOrg, orgs } = useOrg();
   const [open, setOpen] = useState(false);
 

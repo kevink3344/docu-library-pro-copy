@@ -20,11 +20,6 @@ import DocumentForm from '@/pages/DocumentForm';
 import DocumentView from '@/pages/DocumentView';
 import Organizations from '@/pages/Organizations';
 import Settings from '@/pages/Settings';
-import FieldManagement from '@/pages/settings/FieldManagement';
-import LayoutCustomization from '@/pages/settings/LayoutCustomization';
-import TeamManagement from '@/pages/settings/TeamManagement';
-import LocationManagement from '@/pages/settings/LocationManagement';
-import DepartmentManagement from '@/pages/settings/DepartmentManagement';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isAuthenticated } = useAuth();
@@ -53,14 +48,7 @@ const AuthenticatedApp = () => {
             <Route path="/documents/new" element={<DocumentForm />} />
             <Route path="/documents/:id/edit" element={<DocumentForm />} />
             <Route path="/organizations" element={<Organizations />} />
-            <Route path="/settings" element={<Settings />}>
-              <Route index element={<Navigate to="/settings/fields" replace />} />
-              <Route path="fields" element={<FieldManagement />} />
-              <Route path="layout" element={<LayoutCustomization />} />
-              <Route path="teams" element={<TeamManagement />} />
-              <Route path="locations" element={<LocationManagement />} />
-              <Route path="departments" element={<DepartmentManagement />} />
-            </Route>
+            <Route path="/settings" element={<Settings />} />
           </Route>
         ) : (
           <Route path="*" element={<Navigate to="/login" replace />} />

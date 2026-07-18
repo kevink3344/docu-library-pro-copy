@@ -213,7 +213,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="pb-24 sm:pb-6 md:p-6 max-w-6xl mx-auto">
+    <div className="pb-24 sm:px-6 sm:pb-6 md:p-6 max-w-6xl mx-auto">
       {/* Header — iOS large title style on mobile */}
       <div className="flex items-center justify-between px-4 pt-5 pb-2 sm:px-0 sm:pt-0 sm:mb-6 gap-4">
         <div>

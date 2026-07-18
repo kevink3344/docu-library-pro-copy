@@ -133,7 +133,7 @@ function makeEntity(table) {
 }
 
 // ---------------------------------------------------------------------------
-// Entity exports (matching base44 entity names used throughout the app)
+// Entity exports (matching the table names used throughout the app)
 // ---------------------------------------------------------------------------
 
 export const db = {
@@ -167,4 +167,60 @@ export async function getOrgsForUser(userId, userRole) {
     args: { userId },
   });
   return rs.rows.map(r => parseRow('organizations', r));
+}
+
+// ---------------------------------------------------------------------------
+// Org membership helpers
+// ---------------------------------------------------------------------------
+
+export async function getOrgMembersWithUsers(orgId) {
+  const rs = await turso.execute({
+    sql: `SELECT u.*, m.id AS member_id, m.role AS org_role
+          FROM users u
+          LEFT JOIN org_members m ON m.user_id = u.id AND m.org_id = :orgId
+          ORDER BY u.full_name`,
+    args: { orgId },
+  });
+  return rs.rows.map(r => ({
+    ...parseRow('users', r),
+    member_id: r.member_id,
+    org_role: r.org_role,
+  }));
+}
+
+export async function addOrgMember(orgId, { full_name, email, role }) {
+  // Find existing user by email
+  const existing = await turso.execute({
+    sql: 'SELECT id FROM users WHERE email = :email LIMIT 1',
+    args: { email },
+  });
+
+  let userId;
+  if (existing.rows.length > 0) {
+    userId = existing.rows[0].id;
+  } else {
+    const user = await db.User.create({ full_name, email, role: 'user' });
+    userId = user.id;
+  }
+
+  return addExistingUserToOrg(orgId, userId, role);
+}
+
+export async function addExistingUserToOrg(orgId, userId, role) {
+  // Check for existing org membership
+  const membership = await turso.execute({
+    sql: 'SELECT id FROM org_members WHERE org_id = :orgId AND user_id = :userId LIMIT 1',
+    args: { orgId, userId },
+  });
+  if (membership.rows.length > 0) throw new Error('User is already a member of this organization');
+
+  return db.OrgMember.create({ org_id: orgId, user_id: userId, role: role || 'standard_user' });
+}
+
+export async function updateOrgMemberRole(memberId, role) {
+  return db.OrgMember.update(memberId, { role });
+}
+
+export async function removeOrgMember(memberId) {
+  return db.OrgMember.delete(memberId);
 }
