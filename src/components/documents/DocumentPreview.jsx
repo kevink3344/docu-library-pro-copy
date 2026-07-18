@@ -11,7 +11,7 @@ export default function DocumentPreview({ url, fileType, onClose }) {
       try {
         let resolved = url;
 
-        // Private base44 URIs are no longer used; URLs are always public Supabase Storage links
+        // Private hosted URIs are no longer used; URLs are always public Supabase Storage links
 
         if (fileType === 'pdf') {
           // Use Google Docs viewer to avoid cross-origin iframe PDF blocking

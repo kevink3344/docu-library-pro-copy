@@ -4,10 +4,11 @@ import {
   getOrgMembersWithUsers,
   addOrgMember,
   addExistingUserToOrg,
-  updateOrgMemberRole,
+  updateOrgMember,
   removeOrgMember,
 } from '@/api/db';
-import { Plus, Trash2, Pencil, Check, X, UserPlus, UserCheck } from 'lucide-react';
+import { Plus, Trash2, Pencil, UserPlus, UserCheck } from 'lucide-react';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 
 const ROLES = [
   { value: 'org_admin', label: 'Org Admin' },
@@ -23,8 +24,8 @@ export default function MemberManagement() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [form, setForm] = useState({ full_name: '', email: '', role: 'standard_user' });
-  const [editingId, setEditingId] = useState(null);
-  const [editRole, setEditRole] = useState('');
+  const [editMember, setEditMember] = useState(null);
+  const [editForm, setEditForm] = useState({ full_name: '', email: '', role: '' });
 
   const load = async () => {
     if (!currentOrg) return;
@@ -77,21 +78,39 @@ export default function MemberManagement() {
     await load();
   };
 
-  const startEdit = (member) => {
-    setEditingId(member.member_id);
-    setEditRole(member.org_role);
+  const openEdit = (member) => {
+    setError('');
+    setEditMember(member);
+    setEditForm({
+      full_name: member.full_name || '',
+      email: member.email || '',
+      role: member.org_role || 'standard_user',
+    });
   };
 
-  const handleEditSave = async (member) => {
-    if (!editRole) return;
-    await updateOrgMemberRole(member.member_id, editRole);
-    setEditingId(null);
-    await load();
+  const handleEditSave = async () => {
+    if (!editMember || !editForm.full_name.trim() || !editForm.email.trim()) return;
+    setSaving(true);
+    setError('');
+    try {
+      await updateOrgMember(editMember.member_id, editMember.id, {
+        full_name: editForm.full_name.trim(),
+        email: editForm.email.trim(),
+        role: editForm.role,
+      });
+      setEditMember(null);
+      await load();
+    } catch (e) {
+      setError(e.message || 'Failed to update user');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleEditCancel = () => {
-    setEditingId(null);
-    setEditRole('');
+    setError('');
+    setEditMember(null);
+    setEditForm({ full_name: '', email: '', role: '' });
   };
 
   const isMember = (user) => !!user.member_id;
@@ -175,7 +194,7 @@ export default function MemberManagement() {
               <tr className="border-b border-border bg-muted/40">
                 <th className="text-left px-4 py-2.5 field-label">Name</th>
                 <th className="text-left px-4 py-2.5 field-label">Email</th>
-                <th className="text-left px-4 py-2.5 field-label">Status / Role</th>
+                <th className="text-left px-4 py-2.5 field-label">Status</th>
                 <th className="text-left px-4 py-2.5 field-label w-28">Actions</th>
               </tr>
             </thead>
@@ -193,17 +212,7 @@ export default function MemberManagement() {
                   <td className="px-4 py-3 text-muted-foreground">{user.email || '-'}</td>
                   <td className="px-4 py-3">
                     {isMember(user) ? (
-                      editingId === user.member_id ? (
-                        <select
-                          value={editRole}
-                          onChange={e => setEditRole(e.target.value)}
-                          className="kbb-input w-full text-sm py-1"
-                        >
-                          {ROLES.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
-                        </select>
-                      ) : (
-                        <span>{ROLES.find(r => r.value === user.org_role)?.label || user.org_role}</span>
-                      )
+                      <span>{ROLES.find(r => r.value === user.org_role)?.label || user.org_role}</span>
                     ) : (
                       <span className="text-xs text-muted-foreground">Not a member of this org</span>
                     )}
@@ -211,17 +220,10 @@ export default function MemberManagement() {
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-1">
                       {isMember(user) ? (
-                        editingId === user.member_id ? (
-                          <>
-                            <button onClick={() => handleEditSave(user)} className="p-1.5 text-primary hover:bg-primary/10 transition-colors" style={{ borderRadius: 2 }}><Check className="w-3.5 h-3.5" /></button>
-                            <button onClick={handleEditCancel} className="p-1.5 text-muted-foreground hover:bg-accent transition-colors" style={{ borderRadius: 2 }}><X className="w-3.5 h-3.5" /></button>
-                          </>
-                        ) : (
-                          <>
-                            <button onClick={() => startEdit(user)} className="p-1.5 text-muted-foreground hover:bg-accent transition-colors" style={{ borderRadius: 2 }}><Pencil className="w-3.5 h-3.5" /></button>
-                            <button onClick={() => handleRemove(user)} className="p-1.5 hover:bg-destructive/10 text-destructive transition-colors" style={{ borderRadius: 2 }}><Trash2 className="w-3.5 h-3.5" /></button>
-                          </>
-                        )
+                        <>
+                          <button onClick={() => openEdit(user)} className="p-1.5 text-muted-foreground hover:bg-accent transition-colors" style={{ borderRadius: 2 }}><Pencil className="w-3.5 h-3.5" /></button>
+                          <button onClick={() => handleRemove(user)} className="p-1.5 hover:bg-destructive/10 text-destructive transition-colors" style={{ borderRadius: 2 }}><Trash2 className="w-3.5 h-3.5" /></button>
+                        </>
                       ) : (
                         <button
                           onClick={() => handleAddExisting(user)}
@@ -239,6 +241,64 @@ export default function MemberManagement() {
           </table>
         </div>
       )}
+
+      <Sheet open={!!editMember} onOpenChange={(open) => { if (!open) { setEditMember(null); setError(''); } }}>
+        <SheetContent className="sm:max-w-md">
+          <SheetHeader>
+            <SheetTitle>Edit User</SheetTitle>
+            <SheetDescription>Update the user's details and status.</SheetDescription>
+          </SheetHeader>
+          <div className="space-y-4 mt-6">
+            <div className="space-y-1.5">
+              <label className="field-label block">Full Name</label>
+              <input
+                value={editForm.full_name}
+                onChange={e => setEditForm(p => ({ ...p, full_name: e.target.value }))}
+                className="kbb-input w-full"
+                placeholder="Jane Doe"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="field-label block">Email</label>
+              <input
+                type="email"
+                value={editForm.email}
+                onChange={e => setEditForm(p => ({ ...p, email: e.target.value }))}
+                className="kbb-input w-full"
+                placeholder="jane@example.com"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="field-label block">Status</label>
+              <select
+                value={editForm.role}
+                onChange={e => setEditForm(p => ({ ...p, role: e.target.value }))}
+                className="kbb-input w-full"
+              >
+                {ROLES.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
+              </select>
+            </div>
+            {error && <p className="text-xs text-destructive">{error}</p>}
+            <div className="flex gap-2">
+              <button
+                onClick={handleEditSave}
+                disabled={!editForm.full_name.trim() || !editForm.email.trim() || saving}
+                className="px-4 py-2 bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 disabled:opacity-50 transition-colors"
+                style={{ borderRadius: 2 }}
+              >
+                {saving ? 'Saving...' : 'Save Changes'}
+              </button>
+              <button
+                onClick={handleEditCancel}
+                className="px-4 py-2 border border-border text-sm hover:bg-accent transition-colors"
+                style={{ borderRadius: 2 }}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }
