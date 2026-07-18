@@ -1,0 +1,170 @@
+import { turso } from './tursoClient';
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+const uuid = () => crypto.randomUUID();
+const now = () => new Date().toISOString();
+
+// Fields stored as JSON strings in SQLite
+const JSON_FIELDS = {
+  organizations:  ['admin_user_ids'],
+  locations:      [],
+  departments:    [],
+  kbb_documents:  ['tags', 'location', 'department', 'allowed_team_ids', 'custom_field_values'],
+  custom_fields:  ['options'],
+  field_configs:  ['hidden_required_fields', 'add_screen_order', 'view_screen_order', 'dashboard_columns'],
+  teams:          ['member_user_ids'],
+  org_members:    [],
+  notifications:  [],
+  users:          [],
+};
+
+// Fields stored as 0/1 integers in SQLite
+const BOOL_FIELDS = {
+  organizations: ['is_active'],
+  locations:     ['is_active', 'pinned'],
+  departments:   ['is_active', 'pinned'],
+  kbb_documents: ['renew_notified_30', 'renew_notified_7', 'is_archived'],
+  notifications: ['is_read'],
+};
+
+function parseRow(table, row) {
+  if (!row) return null;
+  const obj = { ...row };
+  for (const f of (JSON_FIELDS[table] || [])) {
+    if (obj[f] !== undefined && obj[f] !== null) {
+      try { obj[f] = JSON.parse(obj[f]); } catch { obj[f] = []; }
+    }
+  }
+  for (const f of (BOOL_FIELDS[table] || [])) {
+    if (obj[f] !== undefined) obj[f] = obj[f] === 1 || obj[f] === true;
+  }
+  return obj;
+}
+
+function serializeRow(table, data) {
+  const obj = { ...data };
+  for (const f of (JSON_FIELDS[table] || [])) {
+    if (obj[f] !== undefined) {
+      obj[f] = typeof obj[f] === 'string' ? obj[f] : JSON.stringify(obj[f]);
+    }
+  }
+  return obj;
+}
+
+function buildWhere(filters) {
+  const entries = Object.entries(filters).filter(([, v]) => v !== undefined);
+  if (!entries.length) return { clause: '', args: {} };
+  const parts = entries.map(([k]) => `${k} = :${k}`);
+  return {
+    clause: 'WHERE ' + parts.join(' AND '),
+    args: Object.fromEntries(entries),
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Generic CRUD factory
+// ---------------------------------------------------------------------------
+
+function makeEntity(table) {
+  return {
+    async list() {
+      const rs = await turso.execute(`SELECT * FROM ${table}`);
+      return rs.rows.map(r => parseRow(table, r));
+    },
+
+    async filter(where = {}, sort = null, limit = null) {
+      const { clause, args } = buildWhere(where);
+      let sql = `SELECT * FROM ${table} ${clause}`;
+      if (sort) {
+        const desc = sort.startsWith('-');
+        const col = desc ? sort.slice(1) : sort;
+        sql += ` ORDER BY ${col} ${desc ? 'DESC' : 'ASC'}`;
+      }
+      if (limit) sql += ` LIMIT ${Number(limit)}`;
+      const rs = await turso.execute({ sql, args });
+      return rs.rows.map(r => parseRow(table, r));
+    },
+
+    async get(id) {
+      const rs = await turso.execute({
+        sql: `SELECT * FROM ${table} WHERE id = :id`,
+        args: { id },
+      });
+      return parseRow(table, rs.rows[0] || null);
+    },
+
+    async create(data) {
+      const id = data.id || uuid();
+      const d = serializeRow(table, {
+        ...data,
+        id,
+        created_date: data.created_date || now(),
+        updated_date: data.updated_date || now(),
+      });
+      const keys = Object.keys(d);
+      const sql = `INSERT INTO ${table} (${keys.join(', ')}) VALUES (${keys.map(k => ':' + k).join(', ')})`;
+      await turso.execute({ sql, args: d });
+      return this.get(id);
+    },
+
+    async update(id, data) {
+      const d = serializeRow(table, { ...data, updated_date: now() });
+      delete d.id;
+      delete d.created_date;
+      if (!Object.keys(d).length) return this.get(id);
+      const sets = Object.keys(d).map(k => `${k} = :${k}`).join(', ');
+      await turso.execute({
+        sql: `UPDATE ${table} SET ${sets} WHERE id = :id`,
+        args: { ...d, id },
+      });
+      return this.get(id);
+    },
+
+    async delete(id) {
+      await turso.execute({
+        sql: `DELETE FROM ${table} WHERE id = :id`,
+        args: { id },
+      });
+    },
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Entity exports (matching base44 entity names used throughout the app)
+// ---------------------------------------------------------------------------
+
+export const db = {
+  Organization:  makeEntity('organizations'),
+  Location:      makeEntity('locations'),
+  Department:    makeEntity('departments'),
+  KBBDocument:   makeEntity('kbb_documents'),
+  CustomField:   makeEntity('custom_fields'),
+  FieldConfig:   makeEntity('field_configs'),
+  Team:          makeEntity('teams'),
+  OrgMember:     makeEntity('org_members'),
+  Notification:  makeEntity('notifications'),
+  User:          makeEntity('users'),
+};
+
+// ---------------------------------------------------------------------------
+// Specialised queries
+// ---------------------------------------------------------------------------
+
+/** Returns all organizations a user belongs to (via org_members).
+ *  Admin users (role = 'admin') receive every organization. */
+export async function getOrgsForUser(userId, userRole) {
+  if (userRole === 'admin') {
+    return db.Organization.list();
+  }
+  const rs = await turso.execute({
+    sql: `SELECT o.*
+          FROM organizations o
+          INNER JOIN org_members m ON m.org_id = o.id
+          WHERE m.user_id = :userId`,
+    args: { userId },
+  });
+  return rs.rows.map(r => parseRow('organizations', r));
+}

@@ -1,0 +1,29 @@
+{
+  "name": "Team",
+  "type": "object",
+  "properties": {
+    "org_id": {
+      "type": "string",
+      "description": "Organization ID"
+    },
+    "name": {
+      "type": "string",
+      "description": "Team name"
+    },
+    "description": {
+      "type": "string"
+    },
+    "member_user_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "User IDs in this team",
+      "default": []
+    }
+  },
+  "required": [
+    "org_id",
+    "name"
+  ]
+}

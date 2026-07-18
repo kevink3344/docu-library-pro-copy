@@ -1,0 +1,40 @@
+{
+  "name": "Notification",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "org_id": {
+      "type": "string"
+    },
+    "document_id": {
+      "type": "string",
+      "description": "KBBDocument ID"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "renewal_30",
+        "renewal_7",
+        "renewal_overdue"
+      ],
+      "default": "renewal_30"
+    },
+    "message": {
+      "type": "string"
+    },
+    "is_read": {
+      "type": "boolean",
+      "default": false
+    },
+    "document_title": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "user_id",
+    "type",
+    "message"
+  ]
+}

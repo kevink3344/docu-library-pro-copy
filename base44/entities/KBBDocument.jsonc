@@ -1,0 +1,100 @@
+{
+  "name": "KBBDocument",
+  "type": "object",
+  "properties": {
+    "org_id": {
+      "type": "string",
+      "description": "Organization ID"
+    },
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "document_id": {
+      "type": "string",
+      "description": "Custom document identifier"
+    },
+    "link_url": {
+      "type": "string",
+      "description": "External URL or Google Doc link"
+    },
+    "file_url": {
+      "type": "string",
+      "description": "Uploaded file URL"
+    },
+    "file_type": {
+      "type": "string",
+      "description": "Detected file type: pdf, word, excel, google-doc, url"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "location": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "department": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "renew_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Optional renewal date. Blank = no renewal required."
+    },
+    "renew_notified_30": {
+      "type": "boolean",
+      "default": false,
+      "description": "30-day renewal notification sent"
+    },
+    "renew_notified_7": {
+      "type": "boolean",
+      "default": false,
+      "description": "7-day renewal notification sent"
+    },
+    "visibility": {
+      "type": "string",
+      "enum": [
+        "everyone",
+        "teams"
+      ],
+      "default": "everyone"
+    },
+    "allowed_team_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "creator_user_id": {
+      "type": "string"
+    },
+    "custom_field_values": {
+      "type": "object",
+      "description": "Map of custom_field_id -> value",
+      "default": {}
+    },
+    "is_archived": {
+      "type": "boolean",
+      "default": false,
+      "description": "Archived items are hidden from regular users"
+    }
+  },
+  "required": [
+    "org_id",
+    "title"
+  ]
+}

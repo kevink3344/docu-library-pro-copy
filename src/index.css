@@ -1,0 +1,137 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 98%;
+    --foreground: 222 14% 13%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 14% 13%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 14% 13%;
+    --primary: 225 73% 57%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 210 20% 96%;
+    --secondary-foreground: 222 14% 13%;
+    --muted: 210 20% 96%;
+    --muted-foreground: 215 13% 44%;
+    --accent: 210 20% 94%;
+    --accent-foreground: 222 14% 13%;
+    --destructive: 0 72% 59%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 214 18% 90%;
+    --input: 214 18% 90%;
+    --ring: 225 73% 57%;
+    --radius: 2px;
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
+    --font-heading: 'Inter', ui-sans-serif, system-ui, sans-serif;
+    --font-body: 'Inter', ui-sans-serif, system-ui, sans-serif;
+    --font-display: 'Inter', ui-sans-serif, system-ui, sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 222 14% 13%;
+    --sidebar-primary: 225 73% 57%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 210 20% 96%;
+    --sidebar-accent-foreground: 222 14% 13%;
+    --sidebar-border: 214 18% 90%;
+    --sidebar-ring: 225 73% 57%;
+  }
+
+  .dark {
+    --background: 222 14% 8%;
+    --foreground: 210 20% 96%;
+    --card: 222 14% 10%;
+    --card-foreground: 210 20% 96%;
+    --popover: 222 14% 10%;
+    --popover-foreground: 210 20% 96%;
+    --primary: 225 73% 57%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 222 14% 15%;
+    --secondary-foreground: 210 20% 96%;
+    --muted: 222 14% 15%;
+    --muted-foreground: 215 13% 60%;
+    --accent: 222 14% 18%;
+    --accent-foreground: 210 20% 96%;
+    --destructive: 0 72% 59%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 222 14% 18%;
+    --input: 222 14% 18%;
+    --ring: 225 73% 57%;
+    --sidebar-background: 222 14% 10%;
+    --sidebar-foreground: 210 20% 96%;
+    --sidebar-primary: 225 73% 57%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 222 14% 15%;
+    --sidebar-accent-foreground: 210 20% 96%;
+    --sidebar-border: 222 14% 18%;
+    --sidebar-ring: 225 73% 57%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+    border-radius: 2px !important;
+  }
+
+  body {
+    @apply bg-background text-foreground font-body;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading;
+    font-weight: 600;
+  }
+
+  input, textarea, select, button {
+    border-radius: 2px !important;
+  }
+}
+
+@layer utilities {
+  .font-mono-data {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 13px;
+  }
+
+  .warning {
+    color: hsl(var(--warning));
+  }
+
+  .bg-warning {
+    background-color: hsl(var(--warning));
+    color: hsl(var(--warning-foreground));
+  }
+
+  .border-warning {
+    border-color: hsl(var(--warning));
+  }
+
+  .kbb-card {
+    @apply bg-card border border-border;
+    border-radius: 2px !important;
+  }
+
+  .kbb-input {
+    @apply border border-input bg-background px-3 py-2 text-sm;
+    border-radius: 2px !important;
+    outline: none;
+    transition: border-color 0.15s ease;
+  }
+
+  .kbb-input:focus {
+    @apply border-primary ring-0;
+  }
+
+  .field-label {
+    @apply text-xs font-medium uppercase tracking-wide text-muted-foreground;
+    letter-spacing: 0.06em;
+  }
+}
