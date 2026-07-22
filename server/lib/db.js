@@ -41,6 +41,8 @@ function parseRow(table, row) {
   for (const f of (BOOL_FIELDS[table] || [])) {
     if (obj[f] !== undefined) obj[f] = obj[f] === 1 || obj[f] === true;
   }
+  // Never expose password hashes via the generic entity API
+  if (table === 'users') delete obj.password_hash;
   return obj;
 }
 

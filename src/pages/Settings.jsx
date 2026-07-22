@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useOrg } from '@/lib/OrgContext';
-import { Layers, Layout, Users, User, MapPin, Building2, Building, ChevronDown } from 'lucide-react';
+import { Layers, Layout, Users, User, MapPin, Building2, Building, KeyRound, ChevronDown } from 'lucide-react';
 import OrgSwitcher from '@/components/layout/OrgSwitcher';
 import FieldManagement from '@/pages/settings/FieldManagement';
 import LayoutCustomization from '@/pages/settings/LayoutCustomization';
@@ -9,6 +9,7 @@ import LocationManagement from '@/pages/settings/LocationManagement';
 import DepartmentManagement from '@/pages/settings/DepartmentManagement';
 import MemberManagement from '@/pages/settings/MemberManagement';
 import OrganizationManagement from '@/pages/settings/OrganizationManagement';
+import LoginModeManagement from '@/pages/settings/LoginModeManagement';
 
 const sections = [
   { key: 'fields', label: 'Field Management', icon: Layers, Component: FieldManagement },
@@ -18,6 +19,7 @@ const sections = [
   { key: 'departments', label: 'Departments', icon: Building2, Component: DepartmentManagement },
   { key: 'members', label: 'Users', icon: User, Component: MemberManagement },
   { key: 'organizations', label: 'Organizations', icon: Building, Component: OrganizationManagement },
+  { key: 'loginMode', label: 'Login Mode', icon: KeyRound, Component: LoginModeManagement },
 ];
 
 export default function Settings() {

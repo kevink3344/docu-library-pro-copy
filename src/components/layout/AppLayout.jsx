@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useLocation, Outlet } from 'react-router-dom';
 import { useAuth } from '@/lib/AuthContext';
 import {
@@ -7,17 +7,32 @@ import {
 } from 'lucide-react';
 import NotificationBell from '@/components/notifications/NotificationBell';
 
+const DARK_KEY = 'kbb_dark_mode';
+
+function readDarkPreference() {
+  try {
+    const stored = localStorage.getItem(DARK_KEY);
+    if (stored === '1') return true;
+    if (stored === '0') return false;
+  } catch { /* ignore */ }
+  return document.documentElement.classList.contains('dark');
+}
+
 export default function AppLayout() {
-  const { user, logout } = useAuth();
+  const { user, logout, isAuthenticated } = useAuth();
+  const isGuest = !isAuthenticated;
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [dark, setDark] = useState(() => document.documentElement.classList.contains('dark'));
+  const [dark, setDark] = useState(readDarkPreference);
   const location = useLocation();
 
-  const toggleDark = () => {
-    const isDark = !dark;
-    setDark(isDark);
-    document.documentElement.classList.toggle('dark', isDark);
-  };
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', dark);
+    try {
+      localStorage.setItem(DARK_KEY, dark ? '1' : '0');
+    } catch { /* ignore */ }
+  }, [dark]);
+
+  const toggleDark = () => setDark((d) => !d);
 
   const navItems = [
     { to: '/', label: 'Knowledge Base', icon: BookOpen },
@@ -31,7 +46,6 @@ export default function AppLayout() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* Top Nav */}
       <header className="h-14 border-b border-border bg-card flex items-center px-4 gap-4 sticky top-0 z-40">
         <Link to="/" className="flex items-center gap-2 shrink-0">
           <div className="w-7 h-7 bg-primary flex items-center justify-center" style={{ borderRadius: 2 }}>
@@ -43,7 +57,7 @@ export default function AppLayout() {
         <div className="flex-1" />
 
         <div className="flex items-center gap-2 ml-auto">
-          <NotificationBell user={user} />
+          {!isGuest && <NotificationBell user={user} />}
           <button
             onClick={toggleDark}
             className="p-1.5 hover:bg-accent rounded text-muted-foreground hover:text-foreground transition-colors"
@@ -52,12 +66,22 @@ export default function AppLayout() {
           >
             {dark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
           </button>
-          {user ? (
+          {isGuest ? (
+            <Link
+              to="/login"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 border border-border text-sm hover:bg-accent transition-colors"
+              title="Sign in"
+              style={{ borderRadius: 2 }}
+            >
+              <LogIn className="w-4 h-4" />
+              <span className="hidden sm:inline">Sign In</span>
+            </Link>
+          ) : (
             <div className="flex items-center gap-2">
               <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs font-semibold">
-                {user.full_name?.[0]?.toUpperCase() || 'U'}
+                {user?.full_name?.[0]?.toUpperCase() || 'U'}
               </div>
-              <span className="text-sm hidden sm:block text-foreground">{user.full_name}</span>
+              <span className="text-sm hidden sm:block text-foreground">{user?.full_name}</span>
               <button
                 onClick={() => logout()}
                 className="p-1.5 hover:bg-accent rounded text-muted-foreground hover:text-foreground transition-colors"
@@ -66,32 +90,24 @@ export default function AppLayout() {
                 <LogOut className="w-4 h-4" />
               </button>
             </div>
-          ) : (
-            <Link
-              to="/login"
-              className="p-1.5 hover:bg-accent rounded text-muted-foreground hover:text-foreground transition-colors"
-              title="Sign in"
-              style={{ borderRadius: 2 }}
-            >
-              <LogIn className="w-4 h-4" />
-            </Link>
           )}
-          <button
-            className="md:hidden p-1.5 hover:bg-accent rounded"
-            onClick={() => setMobileOpen(!mobileOpen)}
-          >
-            {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-          </button>
+          {!isGuest && (
+            <button
+              className="md:hidden p-1.5 hover:bg-accent rounded"
+              onClick={() => setMobileOpen(!mobileOpen)}
+              aria-label="Open menu"
+            >
+              {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </button>
+          )}
         </div>
       </header>
 
       <div className="flex flex-1">
-        {/* Sidebar - desktop */}
-        <aside className="hidden md:flex flex-col w-52 border-r border-border bg-card shrink-0">
-          <nav className="flex-1 p-3 space-y-0.5">
-            {navItems.map(({ to, label, icon: Icon, superAdminOnly }) => {
-              if (superAdminOnly && user?.role !== 'admin') return null;
-              return (
+        {!isGuest && (
+          <aside className="hidden md:flex flex-col w-52 border-r border-border bg-card shrink-0">
+            <nav className="flex-1 p-3 space-y-0.5">
+              {navItems.map(({ to, label, icon: Icon }) => (
                 <Link
                   key={to}
                   to={to}
@@ -105,47 +121,42 @@ export default function AppLayout() {
                   <Icon className="w-4 h-4 shrink-0" />
                   {label}
                 </Link>
-              );
-            })}
-          </nav>
-          <div className="p-3 border-t border-border">
-            <p className="text-xs text-muted-foreground font-mono-data">v1.0.0</p>
-          </div>
-        </aside>
+              ))}
+            </nav>
+            <div className="p-3 border-t border-border">
+              <p className="text-xs text-muted-foreground font-mono-data">v1.0.0</p>
+            </div>
+          </aside>
+        )}
 
-        {/* Mobile nav overlay */}
-        {mobileOpen && (
+        {!isGuest && mobileOpen && (
           <div className="md:hidden fixed inset-0 z-30 bg-black/20" onClick={() => setMobileOpen(false)}>
             <aside
               className="w-64 h-full bg-card border-r border-border p-3"
               onClick={e => e.stopPropagation()}
             >
               <nav className="space-y-0.5">
-                {navItems.map(({ to, label, icon: Icon, superAdminOnly }) => {
-                  if (superAdminOnly && user?.role !== 'admin') return null;
-                  return (
-                    <Link
-                      key={to}
-                      to={to}
-                      onClick={() => setMobileOpen(false)}
-                      className={`flex items-center gap-2.5 px-3 py-2 text-sm transition-colors ${
-                        isActive(to)
-                          ? 'bg-primary/8 text-primary font-medium'
-                          : 'text-muted-foreground hover:bg-accent hover:text-foreground'
-                      }`}
-                      style={{ borderRadius: 2 }}
-                    >
-                      <Icon className="w-4 h-4 shrink-0" />
-                      {label}
-                    </Link>
-                  );
-                })}
+                {navItems.map(({ to, label, icon: Icon }) => (
+                  <Link
+                    key={to}
+                    to={to}
+                    onClick={() => setMobileOpen(false)}
+                    className={`flex items-center gap-2.5 px-3 py-2 text-sm transition-colors ${
+                      isActive(to)
+                        ? 'bg-primary/8 text-primary font-medium'
+                        : 'text-muted-foreground hover:bg-accent hover:text-foreground'
+                    }`}
+                    style={{ borderRadius: 2 }}
+                  >
+                    <Icon className="w-4 h-4 shrink-0" />
+                    {label}
+                  </Link>
+                ))}
               </nav>
             </aside>
           </div>
         )}
 
-        {/* Main */}
         <main className="flex-1 overflow-auto">
           <Outlet />
         </main>

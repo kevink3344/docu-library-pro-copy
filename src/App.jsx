@@ -11,16 +11,16 @@ import Register from '@/pages/Register';
 import ForgotPassword from '@/pages/ForgotPassword';
 import ResetPassword from '@/pages/ResetPassword';
 
-// Layout
 import AppLayout from '@/components/layout/AppLayout';
+import RequireAuth from '@/components/RequireAuth';
+import GuestMaintenanceGuard from '@/components/GuestMaintenanceGuard';
 
-// Pages
 import Dashboard from '@/pages/Dashboard';
 import DocumentForm from '@/pages/DocumentForm';
 import DocumentView from '@/pages/DocumentView';
 import Settings from '@/pages/Settings';
 
-const AuthenticatedApp = () => {
+const AppRoutes = () => {
   const { isLoadingAuth, isAuthenticated } = useAuth();
 
   if (isLoadingAuth) {
@@ -39,18 +39,19 @@ const AuthenticatedApp = () => {
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
 
-        {/* All app routes require auth */}
-        {isAuthenticated ? (
-          <Route element={<AppLayout />}>
+        <Route element={<AppLayout />}>
+          <Route element={<GuestMaintenanceGuard />}>
             <Route path="/" element={<Dashboard />} />
             <Route path="/documents/:id" element={<DocumentView />} />
+          </Route>
+
+          <Route element={<RequireAuth />}>
             <Route path="/documents/new" element={<DocumentForm />} />
             <Route path="/documents/:id/edit" element={<DocumentForm />} />
             <Route path="/settings" element={<Settings />} />
           </Route>
-        ) : (
-          <Route path="*" element={<Navigate to="/login" replace />} />
-        )}
+        </Route>
+
         <Route path="*" element={<PageNotFound />} />
       </Routes>
     </OrgProvider>
@@ -63,7 +64,7 @@ function App() {
       <QueryClientProvider client={queryClientInstance}>
         <Router>
           <ScrollToTop />
-          <AuthenticatedApp />
+          <AppRoutes />
         </Router>
         <Toaster />
       </QueryClientProvider>

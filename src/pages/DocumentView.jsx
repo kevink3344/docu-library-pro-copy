@@ -43,6 +43,16 @@ export default function DocumentView() {
       ]);
       const document = docs[0];
       if (!document) { navigate('/'); return; }
+
+      // Guests may only view non-archived, everyone-visible docs in the public org
+      if (!user) {
+        const wrongOrg = currentOrg && document.org_id && document.org_id !== currentOrg.id;
+        if (document.is_archived || document.visibility !== 'everyone' || wrongOrg) {
+          navigate('/');
+          return;
+        }
+      }
+
       setDoc(document);
 
       const cfg = configs[0] || {};
@@ -70,7 +80,7 @@ export default function DocumentView() {
       setLoading(false);
     };
     load();
-  }, [id, currentOrg]);
+  }, [id, currentOrg, user, navigate]);
 
   const handleDelete = async () => {
     if (!confirm('Delete this document?')) return;

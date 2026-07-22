@@ -4,6 +4,16 @@ import { useAuth } from '@/lib/AuthContext';
 
 const OrgContext = createContext(null);
 
+function resolvePublicOrg(allOrgs) {
+  const publicId = import.meta.env.VITE_PUBLIC_ORG_ID?.trim();
+  if (publicId) {
+    const match = allOrgs.find((o) => o.id === publicId);
+    if (match) return match;
+  }
+  const active = allOrgs.filter((o) => o.is_active !== false);
+  return active[0] || allOrgs[0] || null;
+}
+
 export function OrgProvider({ children }) {
   const { user } = useAuth();
   const [orgs, setOrgs] = useState([]);
@@ -12,16 +22,26 @@ export function OrgProvider({ children }) {
 
   useEffect(() => {
     const init = async () => {
-      if (!user) { setLoading(false); return; }
+      setLoading(true);
       try {
+        if (!user) {
+          const allOrgs = await db.Organization.list();
+          const publicOrg = resolvePublicOrg(allOrgs);
+          setOrgs(publicOrg ? [publicOrg] : []);
+          setCurrentOrg(publicOrg);
+          return;
+        }
+
         const allOrgs = await getOrgsForUser(user.id, user.role);
         setOrgs(allOrgs);
         const stored = localStorage.getItem('kbb_current_org');
-        const found = allOrgs.find(o => o.id === stored);
-        const defaultOrg = allOrgs.find(o => o.name === 'Safety Department') || allOrgs[0] || null;
+        const found = allOrgs.find((o) => o.id === stored);
+        const defaultOrg = allOrgs.find((o) => o.name === 'Safety Department') || allOrgs[0] || null;
         setCurrentOrg(found || defaultOrg);
       } catch (e) {
         console.error(e);
+        setOrgs([]);
+        setCurrentOrg(null);
       } finally {
         setLoading(false);
       }
@@ -31,15 +51,21 @@ export function OrgProvider({ children }) {
 
   const handleSetCurrentOrg = (org) => {
     setCurrentOrg(org);
-    if (org) localStorage.setItem('kbb_current_org', org.id);
+    if (org && user) localStorage.setItem('kbb_current_org', org.id);
   };
 
   const refreshOrgs = async () => {
-    if (!user) return;
+    if (!user) {
+      const allOrgs = await db.Organization.list();
+      const publicOrg = resolvePublicOrg(allOrgs);
+      setOrgs(publicOrg ? [publicOrg] : []);
+      setCurrentOrg(publicOrg);
+      return;
+    }
     const allOrgs = await getOrgsForUser(user.id, user.role);
     setOrgs(allOrgs);
     if (currentOrg) {
-      const updated = allOrgs.find(o => o.id === currentOrg.id);
+      const updated = allOrgs.find((o) => o.id === currentOrg.id);
       setCurrentOrg(updated || allOrgs[0] || null);
     }
   };

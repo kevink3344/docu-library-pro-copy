@@ -15,11 +15,20 @@ CREATE TABLE IF NOT EXISTS users (
   full_name     TEXT,
   email         TEXT,
   role          TEXT NOT NULL DEFAULT 'user',
+  password_hash TEXT,                              -- bcrypt hash; NULL for select-mode / unset
   created_date  TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
   updated_date  TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
 );
 
 CREATE INDEX IF NOT EXISTS idx_users_email ON users (email);
+
+-- ---------------------------------------------------------------------
+-- app_settings (global key/value config)
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS app_settings (
+  key   TEXT PRIMARY KEY NOT NULL,
+  value TEXT NOT NULL
+);
 
 -- ---------------------------------------------------------------------
 -- organizations

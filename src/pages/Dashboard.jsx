@@ -7,7 +7,7 @@ import { format, parseISO } from 'date-fns';
 import RenewBadge from '@/components/documents/RenewBadge';
 
 export default function Dashboard() {
-  const { currentOrg, user, isOrgAdmin } = useOrg();
+  const { currentOrg, user, isOrgAdmin, loading: orgLoading } = useOrg();
   const [documents, setDocuments] = useState([]);
   const [locations, setLocations] = useState([]);
   const [departments, setDepartments] = useState([]);
@@ -68,9 +68,11 @@ export default function Dashboard() {
         .filter(t => t.member_user_ids?.includes(user?.id))
         .map(t => t.id);
 
-      const isAdmin = user?.role === 'admin' || currentOrg.admin_user_ids?.includes(user?.id);
+      const isAdmin = !!user && (user.role === 'admin' || currentOrg.admin_user_ids?.includes(user.id));
       const visible = docs.filter(doc => {
         if (doc.is_archived && !isAdmin) return false;
+        // Guests: everyone-visible only
+        if (!user) return doc.visibility === 'everyone';
         if (doc.visibility === 'everyone') return true;
         if (isAdmin) return true;
         return doc.allowed_team_ids?.some(tid => userTeamIds.includes(tid));
@@ -83,7 +85,8 @@ export default function Dashboard() {
 
 
 
-  const isAdmin = user?.role === 'admin' || currentOrg?.admin_user_ids?.includes(user?.id);
+  const isAdmin = !!user && (user?.role === 'admin' || currentOrg?.admin_user_ids?.includes(user?.id));
+  const isGuest = !user;
 
   const filtered = documents.filter(doc => {
     if (!showArchived && doc.is_archived) return false;
@@ -199,10 +202,22 @@ export default function Dashboard() {
     }
   };
 
+  if (orgLoading) {
+    return (
+      <div className="p-8 flex justify-center">
+        <div className="w-8 h-8 border-2 border-border border-t-primary rounded-full animate-spin" style={{ borderRadius: '50%' }} />
+      </div>
+    );
+  }
+
   if (!currentOrg) {
     return (
       <div className="p-8 text-center">
-        <p className="text-muted-foreground mb-4">No organization selected. Create one to get started.</p>
+        <p className="text-muted-foreground mb-4">
+          {isGuest
+            ? 'Knowledge Base unavailable. No public organization is configured.'
+            : 'No organization selected. Create one to get started.'}
+        </p>
         {user?.role === 'admin' && (
           <Link to="/settings" className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors" style={{ borderRadius: 2 }}>
             Manage Organizations
@@ -231,7 +246,7 @@ export default function Dashboard() {
               {showArchived ? 'Archived' : 'Archived'}
             </button>
           )}
-          {!showArchived && (
+          {!isGuest && !showArchived && (
             <Link
               to="/documents/new"
               className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
@@ -331,7 +346,13 @@ export default function Dashboard() {
           <div className="kbb-card p-12 text-center">
             <FileText className="w-8 h-8 text-muted-foreground mx-auto mb-3" />
             <p className="text-muted-foreground text-sm">
-              {showArchived ? 'No archived items.' : search || locationFilter || departmentFilter ? 'No documents match your filters.' : 'No documents yet. Add the first one.'}
+              {showArchived
+                ? 'No archived items.'
+                : search || locationFilter || departmentFilter
+                  ? 'No documents match your filters.'
+                  : isGuest
+                    ? 'No documents available.'
+                    : 'No documents yet. Add the first one.'}
             </p>
           </div>
         ) : viewMode === 'table' ? (
@@ -417,7 +438,7 @@ export default function Dashboard() {
       </div>
 
       {/* Floating Action Button — mobile only, iOS-style */}
-      {!showArchived && (
+      {!isGuest && !showArchived && (
         <Link
           to="/documents/new"
           className="sm:hidden fixed bottom-6 right-5 w-14 h-14 bg-primary text-primary-foreground flex items-center justify-center shadow-lg active:scale-95 transition-transform"
