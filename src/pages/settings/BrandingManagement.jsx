@@ -96,7 +96,7 @@ export default function BrandingManagement() {
       {logoUrlDraft && isUrlValid && (
         <div className="space-y-1.5">
           <label className="field-label block text-xs">Preview</label>
-          <div className="border border-border rounded-sm p-4 bg-background inline-flex items-center justify-center min-h-[60px] min-w-[60px]">
+          <div className="border border-border bg-background inline-flex items-center justify-center min-h-[60px] min-w-[60px]">
             {previewError ? (
               <span className="text-xs text-muted-foreground">Image failed to load</span>
             ) : (

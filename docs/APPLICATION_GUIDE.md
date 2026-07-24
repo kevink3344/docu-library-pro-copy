@@ -36,7 +36,17 @@ Base44 provides four backend services that need replacing:
 
 All data lives in Turso (SQLite). No Supabase, no Firebase, no external auth service.
 
----
+### Additional Documentation
+
+This guide is complemented by the following documents in the `docs/` directory:
+
+| Document | Purpose |
+|---|---|
+| [`docs/plans/application-branding.md`](plans/application-branding.md) | CSS styles, branding variables, theme customization, and UI appearance configuration |
+| [`docs/plans/swagger-ui.md`](plans/swagger-ui.md) | Swagger UI setup, API endpoint documentation, and interactive API exploration |
+
+Refer to these files for detailed guidance on branding and API documentation.
+
 
 ## 2. Prerequisites
 

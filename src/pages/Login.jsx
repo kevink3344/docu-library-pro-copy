@@ -141,11 +141,11 @@ export default function Login() {
         <div>
           <div className="flex items-center gap-3 mb-16">
               {logoUrl && !logoError ? (
-                <div className="bg-white">
+                <div className="bg-white !rounded-none">
                   <img
                     src={logoUrl}
                     alt={title || 'KBB Pro'}
-                    className="h-10 w-auto max-w-[160px] object-contain"
+                    className="h-10 w-auto max-w-[160px] object-contain !rounded-none"
                     onError={() => setLogoError(true)}
                   />
                 </div>
@@ -195,7 +195,7 @@ export default function Login() {
               <img
                 src={logoUrl}
                 alt={title || 'KBB Pro'}
-                className="h-12 w-auto max-w-[160px] object-contain mb-2"
+                className="h-12 w-auto max-w-[160px] object-contain mb-2 !rounded-none"
                 onError={() => setLogoError(true)}
               />
             ) : (
