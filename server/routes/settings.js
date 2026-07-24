@@ -4,15 +4,46 @@ import { authenticateToken, requireAdmin, getLoginModeOverride } from '../lib/au
 
 const router = Router();
 
-const ALLOWED_KEYS = new Set(['login_mode', 'maintenance_message']);
+const ALLOWED_KEYS = new Set(['login_mode', 'maintenance_message', 'app_logo_url', 'app_title', 'hide_logo']);
 
 const DEFAULTS = {
   login_mode: 'select',
   maintenance_message: 'The system is currently undergoing maintenance. Please try again later.',
+  app_logo_url: '',
+  app_title: 'KBB Pro',
+  hide_logo: 'false',
 };
 
 const VALID_LOGIN_MODES = new Set(['select', 'password', 'maintenance']);
 
+/**
+ * @openapi
+ * /api/settings/{key}:
+ *   get:
+ *     summary: Get a setting value by key
+ *     tags: [Settings]
+ *     parameters:
+ *       - in: path
+ *         name: key
+ *         required: true
+ *         schema:
+ *           type: string
+ *           enum: [login_mode, maintenance_message, app_logo_url, app_title, hide_logo]
+ *         description: Setting key
+ *     responses:
+ *       200:
+ *         description: Setting value
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/SettingsGetResponse'
+ *       404:
+ *         description: Unknown setting
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
 router.get('/:key', async (req, res, next) => {
   try {
     const { key } = req.params;
@@ -39,6 +70,48 @@ router.get('/:key', async (req, res, next) => {
   }
 });
 
+/**
+ * @openapi
+ * /api/settings/{key}:
+ *   put:
+ *     summary: Update a setting value (requires admin)
+ *     tags: [Settings]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: key
+ *         required: true
+ *         schema:
+ *           type: string
+ *           enum: [login_mode, maintenance_message, app_logo_url, app_title, hide_logo]
+ *         description: Setting key
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/SettingsPutRequest'
+ *     responses:
+ *       200:
+ *         description: Setting updated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/SettingsGetResponse'
+ *       400:
+ *         description: Invalid value
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       404:
+ *         description: Unknown setting
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
 router.put('/:key', authenticateToken, requireAdmin, async (req, res, next) => {
   try {
     const { key } = req.params;

@@ -1,12 +1,15 @@
 ﻿import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { BookOpen, Loader2 } from 'lucide-react';
+import { useBranding } from '@/lib/BrandingContext';
 import { db } from '@/api/db';
 import { getPublicSetting } from '@/api/settings';
 import { useAuth } from '@/lib/AuthContext';
 
 export default function Login() {
   const { login, loginWithPassword } = useAuth();
+  const { logoUrl, title } = useBranding();
+  const [logoError, setLogoError] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -28,6 +31,11 @@ export default function Login() {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+
+  // Reset logoError when logoUrl changes
+  useEffect(() => {
+    setLogoError(false);
+  }, [logoUrl]);
 
   useEffect(() => {
     Promise.all([
@@ -132,15 +140,26 @@ export default function Login() {
       <div className="hidden lg:flex lg:w-1/2 bg-[#1a2744] text-white flex-col justify-between p-12">
         <div>
           <div className="flex items-center gap-3 mb-16">
-            <div className="w-10 h-10 bg-white/20 flex items-center justify-center rounded-sm">
-              <BookOpen className="w-5 h-5 text-white" />
-            </div>
+              {logoUrl && !logoError ? (
+                <div className="bg-white">
+                  <img
+                    src={logoUrl}
+                    alt={title || 'KBB Pro'}
+                    className="h-10 w-auto max-w-[160px] object-contain"
+                    onError={() => setLogoError(true)}
+                  />
+                </div>
+              ) : (
+                <div className="w-10 h-10 bg-white/20 flex items-center justify-center rounded-sm">
+                  <BookOpen className="w-5 h-5 text-white" />
+                </div>
+              )}
           </div>
           <p className="text-sm font-semibold tracking-widest text-blue-300 uppercase mb-4">
-            KBB Pro &mdash; Document Library
+            {title || 'KBB Pro'} &mdash; Document Library
           </p>
           <h1 className="text-5xl font-extrabold leading-tight mb-6">
-            Sign in to<br />KBB Pro
+            Sign in to<br />{title || 'KBB Pro'}
           </h1>
           <p className="text-blue-200 text-base max-w-xs leading-relaxed">
             {showMaintenance
@@ -171,11 +190,20 @@ export default function Login() {
 
       <div className="flex-1 flex items-center justify-center p-8 bg-background">
         <div className="w-full max-w-sm">
-          <div className="flex items-center gap-2 mb-10 lg:hidden">
-            <div className="w-8 h-8 bg-primary flex items-center justify-center rounded-sm">
-              <BookOpen className="w-4 h-4 text-primary-foreground" />
-            </div>
-            <span className="font-bold text-lg">KBB Pro</span>
+          <div className="flex flex-col items-center mb-10 lg:hidden">
+            {logoUrl && !logoError ? (
+              <img
+                src={logoUrl}
+                alt={title || 'KBB Pro'}
+                className="h-12 w-auto max-w-[160px] object-contain mb-2"
+                onError={() => setLogoError(true)}
+              />
+            ) : (
+              <div className="w-12 h-12 bg-primary flex items-center justify-center rounded-sm mb-2">
+                <BookOpen className="w-6 h-6 text-primary-foreground" />
+              </div>
+            )}
+            <span className="font-bold text-xl">{title || 'KBB Pro'}</span>
           </div>
 
           <p className="text-xs font-semibold tracking-widest text-muted-foreground uppercase mb-1">

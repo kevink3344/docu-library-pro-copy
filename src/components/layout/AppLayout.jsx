@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation, Outlet } from 'react-router-dom';
 import { useAuth } from '@/lib/AuthContext';
+import { useBranding } from '@/lib/BrandingContext';
 import {
   BookOpen, Settings, Menu, X,
   LogOut, Sun, Moon, LogIn
@@ -20,6 +21,8 @@ function readDarkPreference() {
 
 export default function AppLayout() {
   const { user, logout, isAuthenticated } = useAuth();
+  const { logoUrl, title, hideLogo } = useBranding();
+  const [logoError, setLogoError] = useState(false);
   const isGuest = !isAuthenticated;
   const [mobileOpen, setMobileOpen] = useState(false);
   const [dark, setDark] = useState(readDarkPreference);
@@ -48,10 +51,19 @@ export default function AppLayout() {
     <div className="min-h-screen bg-background flex flex-col">
       <header className="h-14 border-b border-border bg-card flex items-center px-4 gap-4 sticky top-0 z-40">
         <Link to="/" className="flex items-center gap-2 shrink-0">
-          <div className="w-7 h-7 bg-primary flex items-center justify-center" style={{ borderRadius: 2 }}>
-            <BookOpen className="w-4 h-4 text-primary-foreground" />
-          </div>
-          <span className="font-semibold text-sm hidden sm:block">KBB Pro</span>
+          {!hideLogo && logoUrl && !logoError ? (
+            <img
+              src={logoUrl}
+              alt={title || 'KBB Pro'}
+              className="h-7 w-auto max-w-[120px] object-contain"
+              onError={() => setLogoError(true)}
+            />
+          ) : !hideLogo ? (
+            <div className="w-7 h-7 bg-primary flex items-center justify-center" style={{ borderRadius: 2 }}>
+              <BookOpen className="w-4 h-4 text-primary-foreground" />
+            </div>
+          ) : null}
+          <span className="font-semibold text-sm hidden sm:block">{title || 'KBB Pro'}</span>
         </Link>
 
         <div className="flex-1" />

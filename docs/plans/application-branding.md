@@ -1,7 +1,11 @@
 # Application Branding Plan
 
 ## Overview
-Allow Org Admins to set a custom **Application Logo** (SVG/PNG URL) and **Application Title** via the Settings page. The logo renders in the upper‑left corner of the header; the title renders immediately to its right. If no custom branding is configured, the current hardcoded logo (BookOpen icon) and title ("KBB Pro") remain as defaults.
+Allow Org Admins to set a custom **Application Logo** (SVG/PNG URL) and **Application Title** via the Settings page. The logo and title render in:
+- **Header**: Upper‑left corner of the main app layout.
+- **Login Page**: Above the login form, centered, for a branded authentication experience.
+
+If no custom branding is configured, the current hardcoded logo (BookOpen icon) and title ("KBB Pro") remain as defaults in the header, while the login page shows a centered BookOpen icon and "KBB Pro" title.
 
 ## Architecture
 
@@ -11,6 +15,14 @@ Allow Org Admins to set a custom **Application Logo** (SVG/PNG URL) and **Applic
 │  ┌─────────┐  ┌───────────────┐                  │
 │  │ Logo    │  │ App Title     │  ...header nav   │
 │  └─────────┘  └───────────────┘                  │
+│  LoginPage.jsx  (reads branding from context)    │
+│  ┌─────────────────────────────────────┐          │
+│  │        ┌─────────┐                  │          │
+│  │        │ Logo    │                  │          │
+│  │        └─────────┘                  │          │
+│  │          App Title                  │          │
+│  │     (centered above form)          │          │
+│  └─────────────────────────────────────┘          │
 ├──────────────────────────────────────────────────┤
 │  BrandingContext  (React Context + hook)         │
 │  - fetch from /api/settings/:key                  │
@@ -95,7 +107,30 @@ Allow Org Admins to set a custom **Application Logo** (SVG/PNG URL) and **Applic
 - Ensure fallback to default icon/title when branding is unset or fails to load.
 - Handle `onError` on the `<img>` tag to fall back to the default icon if the URL is unreachable.
 
-### Step 6 — Edge Cases & Polish
+### Step 6 — Login Page: Render branded logo and title
+**File:** `src/pages/LoginPage.jsx` (or equivalent login component)
+- Import and use the Branding context (`useBranding()` hook).
+- In the login card/panel, above the login form, add a centered branding block:
+  ```jsx
+  const { logoUrl, title } = useBranding();
+
+  // Centered branding section above the login form
+  <div className="flex flex-col items-center mb-6">
+    {logoUrl ? (
+      <img src={logoUrl} alt={title || 'KBB Pro'} className="h-12 w-auto mb-2 object-contain" />
+    ) : (
+      <div className="w-12 h-12 bg-primary flex items-center justify-center rounded-lg mb-2">
+        <BookOpen className="w-6 h-6 text-primary-foreground" />
+      </div>
+    )}
+    <h1 className="text-2xl font-bold">{title || 'KBB Pro'}</h1>
+  </div>
+  ```
+- Handle `onError` on the `<img>` tag to fall back to the default icon.
+- Ensure the login page branding is consistent with the header styling (same logo, same title text).
+- The branding block should be visually centered and above the email/password form inputs.
+
+### Step 7 — Edge Cases & Polish
 - **Empty/cleared fields**: If the admin clears both fields and saves, the app reverts to defaults (BookOpen icon + "KBB Pro").
 - **Broken image URL**: `onError` handler on `<img>` hides the broken image and shows the default icon.
 - **Guest users**: Branding still renders because it's global (not user-specific). The branding API endpoints should be publicly readable (GET) but admin-only for writes (PUT). The existing settings route already handles this — GET is public, PUT requires `authenticateToken` + `requireAdmin`.
@@ -114,6 +149,7 @@ Allow Org Admins to set a custom **Application Logo** (SVG/PNG URL) and **Applic
 | **Create** | `src/pages/settings/BrandingManagement.jsx` | Settings UI component |
 | Modify | `src/pages/Settings.jsx` | Add Branding section to settings list |
 | Modify | `src/components/layout/AppLayout.jsx` | Dynamic logo + title in header |
+| Modify | `src/pages/LoginPage.jsx` (or equivalent) | Dynamic logo + title centered above login form |
 
 ## Testing Checklist
 - [ ] Admin saves a valid PNG URL → logo appears in header, title updates.
@@ -121,6 +157,9 @@ Allow Org Admins to set a custom **Application Logo** (SVG/PNG URL) and **Applic
 - [ ] Admin clears both fields → defaults restore (BookOpen + "KBB Pro").
 - [ ] Invalid URL → validation error shown inline; setting not saved.
 - [ ] Guest user sees the branded header on public pages.
-- [ ] Logo image fails to load (404) → falls back to default icon.
-- [ ] Mobile viewport → logo scales correctly, title hidden (sm:block).
+- [ ] Login page displays the branded logo (centered, above form) and title.
+- [ ] Login page falls back to default BookOpen icon + "KBB Pro" when branding is unset.
+- [ ] Logo image fails to load (404) → falls back to default icon on both header and login page.
+- [ ] Mobile viewport → logo scales correctly, title hidden on header (sm:block), login page remains centered.
 - [ ] Dark mode toggle → branding persists across mode switches.
+- [ ] Login page branding updates immediately after admin saves new branding (via `refreshBranding()`).

@@ -9,6 +9,38 @@ import {
 
 const router = Router();
 
+/**
+ * @openapi
+ * /api/auth/login:
+ *   post:
+ *     summary: Select-mode login using userId
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/AuthLoginRequest'
+ *     responses:
+ *       200:
+ *         description: Login successful
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/AuthLoginResponse'
+ *       400:
+ *         description: userId is required
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       404:
+ *         description: User not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
 router.post('/login', async (req, res, next) => {
   try {
     const { userId, organizationId } = req.body || {};
@@ -39,6 +71,38 @@ function matchesSuperAdminEnv(email, password) {
   return String(email).trim().toLowerCase() === envEmail && password === envPassword;
 }
 
+/**
+ * @openapi
+ * /api/auth/login-with-password:
+ *   post:
+ *     summary: Full auth login with email + password
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/AuthLoginWithPasswordRequest'
+ *     responses:
+ *       200:
+ *         description: Login successful
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/AuthLoginResponse'
+ *       400:
+ *         description: Email and password are required
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       401:
+ *         description: Invalid email or password
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
 router.post('/login-with-password', async (req, res, next) => {
   try {
     const { email, password } = req.body || {};

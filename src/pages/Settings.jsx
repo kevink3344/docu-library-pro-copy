@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useOrg } from '@/lib/OrgContext';
-import { Layers, Layout, Users, User, MapPin, Building2, Building, KeyRound, ChevronDown } from 'lucide-react';
+import { Layers, Layout, Users, User, MapPin, Building2, Building, KeyRound, Palette, BookOpen, ChevronDown } from 'lucide-react';
 import OrgSwitcher from '@/components/layout/OrgSwitcher';
 import FieldManagement from '@/pages/settings/FieldManagement';
 import LayoutCustomization from '@/pages/settings/LayoutCustomization';
@@ -10,8 +10,12 @@ import DepartmentManagement from '@/pages/settings/DepartmentManagement';
 import MemberManagement from '@/pages/settings/MemberManagement';
 import OrganizationManagement from '@/pages/settings/OrganizationManagement';
 import LoginModeManagement from '@/pages/settings/LoginModeManagement';
+import BrandingManagement from '@/pages/settings/BrandingManagement';
+import ApiDocs from '@/pages/settings/ApiDocs';
 
 const sections = [
+  { key: 'apiDocs', label: 'API Docs', icon: BookOpen, Component: ApiDocs },
+  { key: 'branding', label: 'Branding', icon: Palette, Component: BrandingManagement },
   { key: 'fields', label: 'Field Management', icon: Layers, Component: FieldManagement },
   { key: 'layout', label: 'Layout', icon: Layout, Component: LayoutCustomization },
   { key: 'teams', label: 'Teams', icon: Users, Component: TeamManagement },

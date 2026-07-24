@@ -24,3 +24,12 @@ export async function getAppInfo() {
   }
   return res.json();
 }
+
+export async function fetchAppBranding() {
+  const [logoUrl, title, hideLogo] = await Promise.all([
+    getPublicSetting('app_logo_url'),
+    getPublicSetting('app_title'),
+    getPublicSetting('hide_logo'),
+  ]);
+  return { logoUrl: logoUrl || '', title: title || 'KBB Pro', hideLogo: hideLogo === 'true' };
+}
