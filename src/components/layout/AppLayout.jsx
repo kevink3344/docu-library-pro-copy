@@ -7,6 +7,7 @@ import {
   LogOut, Sun, Moon, LogIn
 } from 'lucide-react';
 import NotificationBell from '@/components/notifications/NotificationBell';
+import SystemMessageBanner from '@/components/layout/SystemMessageBanner';
 
 const DARK_KEY = 'kbb_dark_mode';
 
@@ -170,6 +171,7 @@ export default function AppLayout() {
         )}
 
         <main className="flex-1 overflow-auto">
+          <SystemMessageBanner />
           <Outlet />
         </main>
       </div>

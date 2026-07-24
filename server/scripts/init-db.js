@@ -35,4 +35,49 @@ await safeMigrate(
   )`
 );
 
+await safeMigrate(
+  'Created system_messages table',
+  `CREATE TABLE IF NOT EXISTS system_messages (
+    id              TEXT PRIMARY KEY NOT NULL,
+    org_id          TEXT NOT NULL,
+    title           TEXT NOT NULL,
+    text            TEXT NOT NULL DEFAULT '',
+    pastel_color    TEXT NOT NULL DEFAULT '#E8F4FD',
+    is_dismissable  INTEGER NOT NULL DEFAULT 1,
+    is_active       INTEGER NOT NULL DEFAULT 1,
+    created_date    TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+    updated_date    TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+    created_by_id   TEXT,
+    FOREIGN KEY (org_id) REFERENCES organizations (id) ON DELETE CASCADE ON UPDATE CASCADE
+  )`
+);
+
+await safeMigrate(
+  'Created idx_system_messages_org_id index',
+  'CREATE INDEX IF NOT EXISTS idx_system_messages_org_id ON system_messages (org_id)'
+);
+
+await safeMigrate(
+  'Created idx_system_messages_org_active index',
+  'CREATE INDEX IF NOT EXISTS idx_system_messages_org_active ON system_messages (org_id, is_active)'
+);
+
+await safeMigrate(
+  'Created dismissed_messages table',
+  `CREATE TABLE IF NOT EXISTS dismissed_messages (
+    id              TEXT PRIMARY KEY NOT NULL,
+    user_id         TEXT NOT NULL,
+    message_id      TEXT NOT NULL,
+    dismissed_date  TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+    FOREIGN KEY (user_id)    REFERENCES users (id)           ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (message_id) REFERENCES system_messages (id) ON DELETE CASCADE ON UPDATE CASCADE,
+    UNIQUE (user_id, message_id)
+  )`
+);
+
+await safeMigrate(
+  'Created idx_dismissed_messages_user index',
+  'CREATE INDEX IF NOT EXISTS idx_dismissed_messages_user ON dismissed_messages (user_id)'
+);
+
 console.log('Database schema initialized');
