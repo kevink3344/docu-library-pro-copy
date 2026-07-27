@@ -256,4 +256,34 @@ CREATE TABLE IF NOT EXISTS dismissed_messages (
 
 CREATE INDEX IF NOT EXISTS idx_dismissed_messages_user ON dismissed_messages (user_id);
 
+-- ---------------------------------------------------------------------
+-- settings_tabs (tabbed navigation for the Settings page)
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS settings_tabs (
+  id            TEXT PRIMARY KEY NOT NULL,
+  name          TEXT NOT NULL,
+  slug          TEXT NOT NULL UNIQUE,
+  sort_order    INTEGER NOT NULL DEFAULT 0,
+  visible_to    TEXT NOT NULL DEFAULT 'all' CHECK(visible_to IN ('all', 'super_admin')),
+  created_at    TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+  updated_at    TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_settings_tabs_sort_order ON settings_tabs (sort_order);
+
+-- ---------------------------------------------------------------------
+-- settings_tab_sections (maps settings sections to tabs)
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS settings_tab_sections (
+  id            TEXT PRIMARY KEY NOT NULL,
+  tab_id        TEXT NOT NULL,
+  section_key   TEXT NOT NULL,
+  sort_order    INTEGER NOT NULL DEFAULT 0,
+  created_at    TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+  FOREIGN KEY (tab_id) REFERENCES settings_tabs(id) ON DELETE CASCADE,
+  UNIQUE (tab_id, section_key)
+);
+
+CREATE INDEX IF NOT EXISTS idx_settings_tab_sections_tab_id ON settings_tab_sections (tab_id);
+CREATE INDEX IF NOT EXISTS idx_settings_tab_sections_tab_order ON settings_tab_sections (tab_id, sort_order);
 

@@ -9,6 +9,7 @@ import settingsRouter from './routes/settings.js';
 import authRouter from './routes/auth.js';
 import apiRouter from './routes/api.js';
 import systemMessagesRouter from './routes/system-messages.js';
+import { settingsTabsRouter } from './routes/settings-tabs.js';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -61,6 +62,7 @@ app.get('/api-docs.json', (req, res) => {
 
 app.use('/api/health', healthRouter);
 app.use('/api/info', infoRouter);
+app.use('/api/settings', settingsTabsRouter);
 app.use('/api/settings', settingsRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/system-messages', systemMessagesRouter);
