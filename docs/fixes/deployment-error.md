@@ -32,7 +32,8 @@ const distPath = path.join(__dirname, '..', 'dist');
 app.use(express.static(distPath));
 
 // SPA fallback — all non-API routes serve index.html
-app.get('*', (req, res) => {
+// Note: Express 5.x uses {*path} syntax; Express 4.x uses *
+app.get('/{*path}', (req, res) => {
   res.sendFile(path.join(distPath, 'index.html'));
 });
 ```
