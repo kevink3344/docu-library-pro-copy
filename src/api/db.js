@@ -96,6 +96,13 @@ export async function removeOrgMember(memberId) {
   });
 }
 
+export async function updateUserSystemRole(userId, systemRole) {
+  return fetchApi('/api/rpc/updateUserSystemRole', {
+    method: 'POST',
+    body: JSON.stringify({ userId, systemRole }),
+  });
+}
+
 export async function uploadKBBDocumentFile(id, file) {
   const formData = new FormData();
   formData.append('file', file);

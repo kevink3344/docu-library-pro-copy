@@ -6,6 +6,7 @@ import {
   addExistingUserToOrg,
   updateOrgMember,
   removeOrgMember,
+  updateUserSystemRole,
 } from '@/api/db';
 import { Plus, Trash2, Pencil, UserPlus, UserCheck } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
@@ -26,6 +27,7 @@ export default function MemberManagement() {
   const [form, setForm] = useState({ full_name: '', email: '', role: 'standard_user' });
   const [editMember, setEditMember] = useState(null);
   const [editForm, setEditForm] = useState({ full_name: '', email: '', role: '' });
+  const [editSuperAdmin, setEditSuperAdmin] = useState(false);
 
   const load = async () => {
     if (!currentOrg) return;
@@ -86,6 +88,7 @@ export default function MemberManagement() {
       email: member.email || '',
       role: member.org_role || 'standard_user',
     });
+    setEditSuperAdmin(member.role === 'admin');
   };
 
   const handleEditSave = async () => {
@@ -98,6 +101,7 @@ export default function MemberManagement() {
         email: editForm.email.trim(),
         role: editForm.role,
       });
+      await updateUserSystemRole(editMember.id, editSuperAdmin ? 'admin' : 'user');
       setEditMember(null);
       await load();
     } catch (e) {
@@ -277,6 +281,18 @@ export default function MemberManagement() {
               >
                 {ROLES.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
               </select>
+            </div>
+            <div className="flex items-center gap-2.5 pt-1">
+              <input
+                type="checkbox"
+                id="edit_super_admin"
+                checked={editSuperAdmin}
+                onChange={(e) => setEditSuperAdmin(e.target.checked)}
+                className="accent-primary"
+              />
+              <label htmlFor="edit_super_admin" className="text-sm">
+                Super Admin (full system access)
+              </label>
             </div>
             {error && <p className="text-xs text-destructive">{error}</p>}
             <div className="flex gap-2">

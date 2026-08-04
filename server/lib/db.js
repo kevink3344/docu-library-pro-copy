@@ -224,6 +224,12 @@ export async function updateOrgMember(memberId, userId, { full_name, email, role
   if (role) {
     await db.OrgMember.update(memberId, { role });
   }
+  return { success: true };
+}
+
+export async function updateUserSystemRole(userId, systemRole) {
+  await db.User.update(userId, { role: systemRole });
+  return { success: true };
 }
 
 export async function removeOrgMember(memberId) {

@@ -9,6 +9,7 @@ import {
   addExistingUserToOrg,
   updateOrgMember,
   removeOrgMember,
+  updateUserSystemRole,
 } from '../lib/db.js';
 
 const router = Router();
@@ -953,6 +954,10 @@ router.post('/rpc/:name', async (req, res, next) => {
       }
       case 'updateOrgMember': {
         const row = await updateOrgMember(body.memberId, body.userId, body.data);
+        return res.json(row);
+      }
+      case 'updateUserSystemRole': {
+        const row = await updateUserSystemRole(body.userId, body.systemRole);
         return res.json(row);
       }
       case 'removeOrgMember': {
