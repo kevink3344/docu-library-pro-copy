@@ -4,7 +4,7 @@ import { authenticateToken, requireAdmin, getLoginModeOverride } from '../lib/au
 
 const router = Router();
 
-const ALLOWED_KEYS = new Set(['login_mode', 'maintenance_message', 'app_logo_url', 'app_title', 'hide_logo']);
+const ALLOWED_KEYS = new Set(['login_mode', 'maintenance_message', 'app_logo_url', 'app_title', 'hide_logo', 'app_style_theme']);
 
 const DEFAULTS = {
   login_mode: 'select',
@@ -12,9 +12,11 @@ const DEFAULTS = {
   app_logo_url: '',
   app_title: 'KBB Pro',
   hide_logo: 'false',
+  app_style_theme: 'current',
 };
 
 const VALID_LOGIN_MODES = new Set(['select', 'password', 'maintenance']);
+const VALID_STYLE_THEMES = new Set(['current', 'guide']);
 
 /**
  * @openapi
@@ -126,6 +128,10 @@ router.put('/:key', authenticateToken, requireAdmin, async (req, res, next) => {
 
     if (key === 'login_mode' && !VALID_LOGIN_MODES.has(value)) {
       return res.status(400).json({ error: 'Invalid login_mode' });
+    }
+
+    if (key === 'app_style_theme' && !VALID_STYLE_THEMES.has(value)) {
+      return res.status(400).json({ error: 'Invalid app_style_theme. Must be "current" or "guide".' });
     }
 
     await sql.execute({

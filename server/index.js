@@ -62,8 +62,8 @@ app.get('/api-docs.json', (req, res) => {
 
 app.use('/api/health', healthRouter);
 app.use('/api/info', infoRouter);
-app.use('/api/settings', settingsTabsRouter);
 app.use('/api/settings', settingsRouter);
+app.use('/api/settings', settingsTabsRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/system-messages', systemMessagesRouter);
 app.use('/api', apiRouter);

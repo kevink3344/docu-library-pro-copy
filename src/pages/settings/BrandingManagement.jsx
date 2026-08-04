@@ -6,11 +6,12 @@ import { Palette, Loader2, X } from 'lucide-react';
 const URL_REGEX = /^(https?:\/\/.+|data:image\/(svg\+xml|png|jpeg|gif|webp);base64,.+|)$/;
 
 export default function BrandingManagement() {
-  const { logoUrl, title, hideLogo, refreshBranding } = useBranding();
+  const { logoUrl, title, hideLogo, styleTheme, refreshBranding } = useBranding();
 
   const [logoUrlDraft, setLogoUrlDraft] = useState('');
   const [titleDraft, setTitleDraft] = useState('');
   const [hideLogoDraft, setHideLogoDraft] = useState(false);
+  const [styleThemeDraft, setStyleThemeDraft] = useState('current');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [saved, setSaved] = useState(false);
@@ -20,13 +21,15 @@ export default function BrandingManagement() {
     setLogoUrlDraft(logoUrl);
     setTitleDraft(title);
     setHideLogoDraft(hideLogo);
+    setStyleThemeDraft(styleTheme);
     setPreviewError(false);
-  }, [logoUrl, title, hideLogo]);
+  }, [logoUrl, title, hideLogo, styleTheme]);
 
   const hasChanges =
     logoUrlDraft !== logoUrl ||
     titleDraft !== title ||
-    hideLogoDraft !== hideLogo;
+    hideLogoDraft !== hideLogo ||
+    styleThemeDraft !== styleTheme;
 
   const isUrlValid = URL_REGEX.test(logoUrlDraft);
 
@@ -43,6 +46,7 @@ export default function BrandingManagement() {
         updateSetting('app_logo_url', logoUrlDraft),
         updateSetting('app_title', titleDraft),
         updateSetting('hide_logo', hideLogoDraft ? 'true' : 'false'),
+        updateSetting('app_style_theme', styleThemeDraft),
       ]);
       setSaved(true);
       await refreshBranding();
@@ -136,6 +140,38 @@ export default function BrandingManagement() {
         <label htmlFor="hide_logo" className="text-sm">
           Hide logo in header (show title only)
         </label>
+      </div>
+
+      {/* Style Theme */}
+      <div className="space-y-1.5 pt-4 border-t border-border">
+        <label className="field-label block">Style Theme</label>
+        <p className="text-xs text-muted-foreground">
+          Switch between the current blue theme and the slate-based style guide theme.
+        </p>
+        <div className="flex gap-4 pt-1">
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="radio"
+              name="style_theme"
+              value="current"
+              checked={styleThemeDraft === 'current'}
+              onChange={() => setStyleThemeDraft('current')}
+              className="accent-primary"
+            />
+            <span className="text-sm">Current (Blue)</span>
+          </label>
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="radio"
+              name="style_theme"
+              value="guide"
+              checked={styleThemeDraft === 'guide'}
+              onChange={() => setStyleThemeDraft('guide')}
+              className="accent-primary"
+            />
+            <span className="text-sm">Style Guide (Slate)</span>
+          </label>
+        </div>
       </div>
 
       {/* Save */}

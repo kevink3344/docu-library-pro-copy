@@ -26,10 +26,11 @@ export async function getAppInfo() {
 }
 
 export async function fetchAppBranding() {
-  const [logoUrl, title, hideLogo] = await Promise.all([
+  const [logoUrl, title, hideLogo, styleTheme] = await Promise.all([
     getPublicSetting('app_logo_url'),
     getPublicSetting('app_title'),
     getPublicSetting('hide_logo'),
+    getPublicSetting('app_style_theme'),
   ]);
-  return { logoUrl: logoUrl || '', title: title || 'KBB Pro', hideLogo: hideLogo === 'true' };
+  return { logoUrl: logoUrl || '', title: title || 'KBB Pro', hideLogo: hideLogo === 'true', styleTheme: styleTheme || 'current' };
 }
