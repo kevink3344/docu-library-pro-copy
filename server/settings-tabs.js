@@ -182,24 +182,35 @@ export async function reorderSettingsTabs(orderedIds) {
 export async function updateTabSections(tabId, sectionKeys) {
   const now = new Date().toISOString();
 
-  // Delete existing sections for this tab
-  await db.execute({
-    sql: 'DELETE FROM settings_tab_sections WHERE tab_id = ?',
-    args: [tabId],
-  });
+  // Deduplicate while preserving order
+  const uniqueKeys = [...new Set(sectionKeys)];
 
-  // Insert new sections in order
-  /** @type {SettingsTabSection[]} */
-  const sections = [];
-  for (let i = 0; i < sectionKeys.length; i++) {
-    const id = crypto.randomUUID();
+  // Use a transaction so DELETE + INSERTs are atomic
+  await db.execute({ sql: 'BEGIN' });
+  try {
+    // Delete existing sections for this tab
     await db.execute({
-      sql: `INSERT INTO settings_tab_sections (id, tab_id, section_key, sort_order, created_at)
-            VALUES (?, ?, ?, ?, ?)`,
-      args: [id, tabId, sectionKeys[i], i, now],
+      sql: 'DELETE FROM settings_tab_sections WHERE tab_id = ?',
+      args: [tabId],
     });
-    sections.push({ id, tab_id: tabId, section_key: sectionKeys[i], sort_order: i });
+
+    // Insert new sections in order
+    /** @type {SettingsTabSection[]} */
+    const sections = [];
+    for (let i = 0; i < uniqueKeys.length; i++) {
+      const id = crypto.randomUUID();
+      await db.execute({
+        sql: `INSERT INTO settings_tab_sections (id, tab_id, section_key, sort_order, created_at)
+              VALUES (?, ?, ?, ?, ?)`,
+        args: [id, tabId, uniqueKeys[i], i, now],
+      });
+    sections.push({ id, tab_id: tabId, section_key: uniqueKeys[i], sort_order: i });
   }
 
-  return sections;
+    await db.execute({ sql: 'COMMIT' });
+    return sections;
+  } catch (err) {
+    await db.execute({ sql: 'ROLLBACK' });
+    throw err;
+  }
 }

@@ -17,7 +17,7 @@ export async function fetchApi(path, options = {}) {
 
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
-    throw new Error(body.error || `HTTP ${res.status}`);
+    throw new Error(body.detail || body.error || `HTTP ${res.status}`);
   }
 
   if (res.status === 204) return null;
