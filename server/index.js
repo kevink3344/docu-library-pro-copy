@@ -73,16 +73,14 @@ app.use('/api/auth', authRouter);
 app.use('/api/system-messages', systemMessagesRouter);
 app.use('/api', apiRouter);
 
-// In production, serve the Vite-built frontend
-if (process.env.NODE_ENV === 'production') {
-  const distPath = path.join(__dirname, '..', 'dist');
-  app.use(express.static(distPath));
+// Serve the Vite-built frontend (production) — in dev, Vite runs on a separate port
+const distPath = path.join(__dirname, '..', 'dist');
+app.use(express.static(distPath));
 
-  // SPA fallback — all non-API routes serve index.html
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(distPath, 'index.html'));
-  });
-}
+// SPA fallback — all non-API routes serve index.html
+app.get('*', (req, res) => {
+  res.sendFile(path.join(distPath, 'index.html'));
+});
 
 app.use((err, req, res, next) => {
   console.error(err.stack);

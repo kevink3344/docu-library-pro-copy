@@ -27,17 +27,17 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// In production, serve the Vite-built frontend
-if (process.env.NODE_ENV === 'production') {
-  const distPath = path.join(__dirname, '..', 'dist');
-  app.use(express.static(distPath));
+// Serve the Vite-built frontend — in dev, Vite runs on a separate port so this doesn't interfere
+const distPath = path.join(__dirname, '..', 'dist');
+app.use(express.static(distPath));
 
-  // SPA fallback — all non-API routes serve index.html
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(distPath, 'index.html'));
-  });
-}
+// SPA fallback — all non-API routes serve index.html
+app.get('*', (req, res) => {
+  res.sendFile(path.join(distPath, 'index.html'));
+});
 ```
+
+> **Important**: Do NOT wrap this in `if (process.env.NODE_ENV === 'production')`. Azure App Service does not always set `NODE_ENV=production`, so the guard would prevent the static files from being served. In development, this is harmless because Vite runs on a separate port (5173) and handles the frontend independently.
 
 ### 2. Update the build/start scripts
 
