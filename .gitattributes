@@ -1,0 +1,10 @@
+# Shell scripts must use LF line endings (CRLF breaks the shebang on Linux)
+*.sh text eol=lf
+
+# Keep these as-is
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.pdf binary
+*.ico binary
