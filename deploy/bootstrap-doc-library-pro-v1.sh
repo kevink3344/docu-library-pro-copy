@@ -90,7 +90,7 @@ else
   # We find the vhost by its DocumentRoot line (which contains VHOST_MATCH), then
   # insert immediately before the next </VirtualHost> after that point.
   log "No existing block — inserting a new one into the '$VHOST_MATCH' vhost."
-  awk -v match="$VHOST_MATCH" -v block="$BLOCK" '
+  awk -v vhostpat="$VHOST_MATCH" -v block="$BLOCK" '
     BEGIN { seen=0; inserted=0 }
     {
       # Once we have seen the target vhost, insert before its closing tag.
@@ -99,7 +99,7 @@ else
         inserted=1
       }
       print
-      if (!seen && $0 ~ /DocumentRoot/ && index($0, match) > 0) seen=1
+      if (!seen && $0 ~ /DocumentRoot/ && index($0, vhostpat) > 0) seen=1
     }
     END { if (!inserted) exit 3 }
   ' "$HTTPD_CONF" > "$TMP" || {
