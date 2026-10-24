@@ -8,6 +8,8 @@ const __dirname = path.dirname(__filename)
 
 // https://vite.dev/config/
 export default defineConfig({
+  // Deploy under a subpath when VITE_BASE_PATH is set (e.g. /oracle-data-v2/)
+  base: process.env.VITE_BASE_PATH || '/',
   logLevel: 'error',
   resolve: {
     alias: {

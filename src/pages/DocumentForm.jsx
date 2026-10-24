@@ -212,6 +212,30 @@ export default function DocumentForm() {
       </div>
     );
 
+    if (field.type === 'hyperlink') {
+      const link = (val && typeof val === 'object' && !Array.isArray(val)) ? val : { text: '', url: '' };
+      return (
+        <div key={field.key} className="space-y-1.5">
+          <label className="field-label block">{field.label}</label>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <input
+              value={link.text || ''}
+              onChange={e => setVal({ ...link, text: e.target.value })}
+              placeholder="Link text"
+              className="kbb-input w-full"
+            />
+            <input
+              value={link.url || ''}
+              onChange={e => setVal({ ...link, url: e.target.value })}
+              placeholder="https://"
+              type="url"
+              className="kbb-input w-full"
+            />
+          </div>
+        </div>
+      );
+    }
+
     if (field.type === 'single-select') return (
       <div key={field.key} className="space-y-1.5">
         <label className="field-label block">{field.label}</label>

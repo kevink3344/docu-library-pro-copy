@@ -23,6 +23,7 @@ const MULTI_VALUE_KEYS = new Set(['location', 'department', 'tags']);
 const SYSTEM_COLUMN_OPTIONS = [
   { key: 'title', label: 'Product Name', isMulti: false },
   { key: 'document_id', label: 'Document ID', isMulti: false },
+  { key: 'link_url', label: 'Link to Document', isMulti: false },
   { key: 'location', label: 'Sites', isMulti: true },
   { key: 'department', label: 'Departments', isMulti: true },
   { key: 'tags', label: 'Tags', isMulti: true },

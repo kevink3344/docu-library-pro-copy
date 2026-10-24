@@ -73,14 +73,23 @@ app.use('/api/auth', authRouter);
 app.use('/api/system-messages', systemMessagesRouter);
 app.use('/api', apiRouter);
 
-// Serve the Vite-built frontend (production) — in dev, Vite runs on a separate port
+// Serve the Vite-built frontend (production) — in dev, Vite runs on a separate port.
+// When deployed under a subpath (e.g. /oracle-data-v2), set BASE_PATH to that prefix.
 const distPath = path.join(__dirname, '..', 'dist');
-app.use(express.static(distPath));
+const basePath = (process.env.BASE_PATH || '').replace(/\/$/, ''); // '' or '/oracle-data-v2'
 
-// SPA fallback — all non-API routes serve index.html
-app.get('/{*path}', (req, res) => {
+// Static assets (JS/CSS/images) live under <basePath>/assets and similar
+app.use(`${basePath}`, express.static(distPath));
+
+// SPA fallback — all non-API routes under the base path serve index.html
+app.get(`${basePath}/{*path}`, (req, res) => {
   res.sendFile(path.join(distPath, 'index.html'));
 });
+
+// If a base path is configured, redirect the bare root to it for convenience
+if (basePath) {
+  app.get('/', (req, res) => res.redirect(basePath));
+}
 
 app.use((err, req, res, next) => {
   console.error(err.stack);

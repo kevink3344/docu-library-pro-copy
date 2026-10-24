@@ -63,7 +63,7 @@ export default function DocumentView() {
       const hidden = cfg.hidden_required_fields || [];
       const allFields = [
         ...Object.keys(REQUIRED_FIELD_MAP).filter(k => !hidden.includes(k)).map(k => ({ key: k, label: REQUIRED_FIELD_MAP[k], type: 'required' })),
-        ...active.map(f => ({ key: `custom_${f.id}`, label: f.name, type: 'custom', customId: f.id }))
+        ...active.map(f => ({ key: `custom_${f.id}`, label: f.name, type: 'custom', customId: f.id, inputType: f.input_type }))
       ];
 
       if (cfg.view_screen_order?.length) {
@@ -116,6 +116,17 @@ export default function DocumentView() {
   const renderFieldValue = (field) => {
     if (field.type === 'custom') {
       const val = doc?.custom_field_values?.[field.customId];
+      if (field.inputType === 'hyperlink') {
+        if (val && typeof val === 'object' && !Array.isArray(val) && (val.url || val.text)) {
+          const href = val.url ? (/^https?:\/\//i.test(val.url) ? val.url : `https://${val.url}`) : null;
+          return href ? (
+            <a href={href} target="_blank" rel="noopener noreferrer" className="text-primary text-sm hover:underline inline-flex items-center gap-1.5 break-all">
+              <ExternalLink className="w-3.5 h-3.5 shrink-0" />{val.text || val.url}
+            </a>
+          ) : <span className="text-sm">{val.text}</span>;
+        }
+        return <span className="text-muted-foreground">—</span>;
+      }
       if (Array.isArray(val)) {
         return val.length ? (
           <div className="flex flex-wrap gap-1">
@@ -188,7 +199,7 @@ export default function DocumentView() {
       </div>
 
       <div className="kbb-card overflow-hidden">
-        {orderedFields.filter(f => f.key !== 'file').map((field, idx) => (
+        {orderedFields.map((field, idx) => (
           <div key={field.key} className={`flex gap-4 px-4 py-3.5 ${idx !== 0 ? 'border-t border-border' : ''}`}>
             <div className="w-32 shrink-0">
               <span className="field-label">{field.label}</span>
@@ -196,14 +207,6 @@ export default function DocumentView() {
             <div className="flex-1 min-w-0">{renderFieldValue(field)}</div>
           </div>
         ))}
-
-        {/* File row */}
-        {!fieldConfig?.hidden_required_fields?.includes('file') && (
-          <div className="flex gap-4 px-4 py-3.5 border-t border-border">
-            <div className="w-32 shrink-0"><span className="field-label">File</span></div>
-            <div className="flex-1">{renderFieldValue({ key: 'file', type: 'required' })}</div>
-          </div>
-        )}
 
         {/* Permissions row */}
         <div className="flex gap-4 px-4 py-3.5 border-t border-border">

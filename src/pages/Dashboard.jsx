@@ -155,19 +155,46 @@ export default function Dashboard() {
           </div>
         );
       }
+      // Hyperlink custom fields store { text, url }
+      if (typeof val === 'object') {
+        if (!val.text && !val.url) return <span className="text-sm text-muted-foreground">—</span>;
+        const href = val.url ? (/^https?:\/\//i.test(val.url) ? val.url : `https://${val.url}`) : null;
+        return href ? (
+          <a
+            href={href}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={e => e.stopPropagation()}
+            className="text-primary text-sm hover:underline break-all"
+          >
+            {val.text || val.url}
+          </a>
+        ) : <span className="text-sm">{val.text}</span>;
+      }
       return <span className="text-sm">{val}</span>;
     }
 
     switch (key) {
       case 'title':
         return (
-          <div className="flex items-center gap-2">
-            <span className="font-medium text-sm truncate max-w-[180px]">{doc.title}</span>
+          <div className="flex items-start gap-2">
+            <span className="font-medium text-sm whitespace-normal break-words">{doc.title}</span>
             {showRenewBadge && <RenewBadge renewDate={doc.renew_date} compact />}
           </div>
         );
       case 'document_id':
         return <span className="font-mono-data text-muted-foreground">{doc.document_id || '—'}</span>;
+      case 'link_url': return doc.link_url ? (
+        <a
+          href={/^https?:\/\//i.test(doc.link_url) ? doc.link_url : `https://${doc.link_url}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={e => e.stopPropagation()}
+          className="text-primary text-sm hover:underline"
+        >
+          Link to document
+        </a>
+      ) : <span className="text-sm text-muted-foreground">—</span>;
       case 'location':
         if (!doc.location?.length) return <span className="text-sm text-muted-foreground">—</span>;
         if (display_mode === 'total') return <span className="text-sm text-muted-foreground">{doc.location.length} site{doc.location.length !== 1 ? 's' : ''}</span>;
@@ -399,8 +426,8 @@ export default function Dashboard() {
                   active:bg-accent/60
                 `}
               >
-                <div className="flex items-center justify-between gap-2">
-                  <span className="font-medium text-[15px] sm:text-sm leading-snug flex-1 min-w-0 truncate">{doc.title}</span>
+                <div className="flex items-start justify-between gap-2">
+                  <span className="font-medium text-[15px] sm:text-sm leading-snug flex-1 min-w-0 whitespace-normal break-words">{doc.title}</span>
                   <div className="flex items-center gap-2 shrink-0">
                     {showRenewBadge && <RenewBadge renewDate={doc.renew_date} compact />}
                     <span className="sm:hidden text-muted-foreground/40 text-lg leading-none">›</span>

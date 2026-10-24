@@ -118,25 +118,26 @@ export default function AppLayout() {
 
       <div className="flex flex-1">
         {!isGuest && (
-          <aside className="hidden md:flex flex-col w-52 border-r border-border bg-card shrink-0">
-            <nav className="flex-1 p-3 space-y-0.5">
+          <aside className="hidden md:flex flex-col w-14 lg:w-52 border-r border-border bg-card shrink-0 transition-[width] duration-200">
+            <nav className="flex-1 p-2 lg:p-3 space-y-0.5">
               {navItems.map(({ to, label, icon: Icon }) => (
                 <Link
                   key={to}
                   to={to}
+                  title={label}
                   className={`flex items-center gap-2.5 px-3 py-2 text-sm transition-colors ${
                     isActive(to)
                       ? 'bg-primary/8 text-primary font-medium border-l-2 border-primary'
                       : 'text-muted-foreground hover:bg-accent hover:text-foreground'
-                  }`}
+                  } justify-center lg:justify-start`}
                   style={{ borderRadius: 2 }}
                 >
                   <Icon className="w-4 h-4 shrink-0" />
-                  {label}
+                  <span className="hidden lg:inline">{label}</span>
                 </Link>
               ))}
             </nav>
-            <div className="p-3 border-t border-border">
+            <div className="p-3 border-t border-border hidden lg:block">
               <p className="text-xs text-muted-foreground font-mono-data">v1.0.0</p>
             </div>
           </aside>

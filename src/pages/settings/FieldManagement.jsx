@@ -20,6 +20,7 @@ const FIELD_TYPES = [
   { value: 'text-paragraph', label: 'Paragraph' },
   { value: 'single-select', label: 'Single Select' },
   { value: 'multi-select', label: 'Multi-Select' },
+  { value: 'hyperlink', label: 'Hyperlink' },
 ];
 
 export default function FieldManagement() {

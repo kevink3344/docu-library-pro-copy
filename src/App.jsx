@@ -60,10 +60,12 @@ const AppRoutes = () => {
 };
 
 function App() {
+  // Support deployment under a subpath (e.g. /oracle-data-v2) via VITE_BASE_PATH
+  const basename = (import.meta.env.VITE_BASE_PATH || '/').replace(/\/$/, '') || '/';
   return (
     <AuthProvider>
       <QueryClientProvider client={queryClientInstance}>
-        <Router>
+        <Router basename={basename}>
           <BrandingProvider>
             <ScrollToTop />
             <AppRoutes />
