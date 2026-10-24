@@ -186,10 +186,9 @@ export async function updateTabSections(tabId, sectionKeys) {
   const uniqueKeys = [...new Set(sectionKeys)];
 
   // Use a transaction so DELETE + INSERTs are atomic
-  await db.execute({ sql: 'BEGIN' });
-  try {
+  return db.transaction(async (tx) => {
     // Delete existing sections for this tab
-    await db.execute({
+    await tx.execute({
       sql: 'DELETE FROM settings_tab_sections WHERE tab_id = ?',
       args: [tabId],
     });
@@ -199,18 +198,14 @@ export async function updateTabSections(tabId, sectionKeys) {
     const sections = [];
     for (let i = 0; i < uniqueKeys.length; i++) {
       const id = crypto.randomUUID();
-      await db.execute({
+      await tx.execute({
         sql: `INSERT INTO settings_tab_sections (id, tab_id, section_key, sort_order, created_at)
               VALUES (?, ?, ?, ?, ?)`,
         args: [id, tabId, uniqueKeys[i], i, now],
       });
-    sections.push({ id, tab_id: tabId, section_key: uniqueKeys[i], sort_order: i });
-  }
+      sections.push({ id, tab_id: tabId, section_key: uniqueKeys[i], sort_order: i });
+    }
 
-    await db.execute({ sql: 'COMMIT' });
     return sections;
-  } catch (err) {
-    await db.execute({ sql: 'ROLLBACK' });
-    throw err;
-  }
+  });
 }

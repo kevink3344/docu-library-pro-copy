@@ -61,7 +61,7 @@ router.get('/:key', async (req, res, next) => {
     }
 
     const rs = await sql.execute({
-      sql: 'SELECT value FROM app_settings WHERE key = :key LIMIT 1',
+      sql: 'SELECT value FROM app_settings WHERE `key` = :key LIMIT 1',
       args: { key },
     });
 
@@ -135,8 +135,8 @@ router.put('/:key', authenticateToken, requireAdmin, async (req, res, next) => {
     }
 
     await sql.execute({
-      sql: `INSERT INTO app_settings (key, value) VALUES (:key, :value)
-            ON CONFLICT(key) DO UPDATE SET value = excluded.value`,
+      sql: `INSERT INTO app_settings (\`key\`, \`value\`) VALUES (:key, :value)
+            ON DUPLICATE KEY UPDATE \`value\` = VALUES(\`value\`)`,
       args: { key, value },
     });
 

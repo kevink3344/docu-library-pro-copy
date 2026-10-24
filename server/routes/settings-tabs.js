@@ -12,8 +12,9 @@ import {
 
 export const settingsTabsRouter = Router();
 
-// All routes require authentication + admin role
-settingsTabsRouter.use(authenticateToken, requireAdmin);
+// All /tabs routes require authentication + admin role.
+// Scoped to '/tabs' so non-tab settings paths fall through to the settings router.
+settingsTabsRouter.use('/tabs', authenticateToken, requireAdmin);
 
 /**
  * @openapi

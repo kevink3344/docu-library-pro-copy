@@ -410,7 +410,7 @@ router.post('/:id/dismiss', authenticateToken, async (req, res, next) => {
 
     // Upsert dismissal (ignore if already dismissed)
     await sql.execute({
-      sql: `INSERT OR IGNORE INTO dismissed_messages (id, user_id, message_id, dismissed_date)
+      sql: `INSERT IGNORE INTO dismissed_messages (id, user_id, message_id, dismissed_date)
             VALUES (:dismissId, :userId, :messageId, :now)`,
       args: {
         dismissId: crypto.randomUUID(),
