@@ -2,6 +2,11 @@
 .env
 .env.*
 
+# database export dumps (may contain sensitive data)
+mysql-export.json
+*.export.json
+dump.json
+
 # Logs
 /logs
 *.log
