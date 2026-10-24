@@ -43,6 +43,11 @@ const BOOL_COLUMNS = {
   system_messages: ['is_dismissable', 'is_active'],
 };
 
+// Binary columns (must be Buffer for VARBINARY; MySQL may return '' or string)
+const BINARY_COLUMNS = {
+  kbb_documents: ['file_blob'],
+};
+
 // Reserved-word columns needing brackets on the target
 const RESERVED = { app_settings: { key: '[key]', value: '[value]' } };
 
@@ -87,11 +92,25 @@ async function migrateTable(table) {
     const request = pool.request();
     columns.forEach((c, i) => {
       let v = row[c];
-      // Coerce booleans to 0/1 for BIT
+      const isBinary = (BINARY_COLUMNS[table] || []).includes(c);
+
       if ((BOOL_COLUMNS[table] || []).includes(c)) {
         v = v ? 1 : 0;
+        request.input(`c${i}`, mssql.Bit, v);
+        return;
       }
-      // Buffers pass through as VARBINARY
+
+      if (isBinary) {
+        // Always declare the param as VarBinary so NULLs don't default to NVarChar
+        if (v == null || v === '') {
+          request.input(`c${i}`, mssql.VarBinary(mssql.MAX), null);
+        } else {
+          const buf = Buffer.isBuffer(v) ? v : Buffer.from(v);
+          request.input(`c${i}`, mssql.VarBinary(buf.length), buf);
+        }
+        return;
+      }
+
       request.input(`c${i}`, v);
     });
     try {
@@ -108,6 +127,19 @@ async function migrateTable(table) {
 }
 
 console.log('Migrating data MySQL -> Azure SQL...\n');
+
+// Make the migration idempotent: clear target tables in reverse dependency order
+// so a re-run starts clean and re-inserts everything with the source IDs.
+const CLEAR_ORDER = [...TABLES].reverse();
+for (const t of CLEAR_ORDER) {
+  try {
+    await pool.request().query(`DELETE FROM ${t}`);
+  } catch (e) {
+    // ignore if table missing
+  }
+}
+console.log('  (cleared existing target rows)\n');
+
 for (const table of TABLES) {
   await migrateTable(table);
 }
