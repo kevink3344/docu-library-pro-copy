@@ -74,22 +74,27 @@ app.use('/api/system-messages', systemMessagesRouter);
 app.use('/api', apiRouter);
 
 // Serve the Vite-built frontend (production) — in dev, Vite runs on a separate port.
-// When deployed under a subpath (e.g. /oracle-data-v2), set BASE_PATH to that prefix.
+//
+// Two supported deployment models:
+//   A) Reverse proxy STRIPS the prefix (e.g. Apache `ProxyPass /app/ http://127.0.0.1:PORT/`):
+//      leave BASE_PATH unset. The app serves at '/', and the browser still requests
+//      /app/assets/... only because the build used VITE_BASE_PATH=/app/.
+//   B) Reverse proxy KEEPS the prefix (e.g. `ProxyPass /app/ http://127.0.0.1:PORT/app/`):
+//      set BASE_PATH=/app so the app mounts static + SPA fallback under /app.
 const distPath = path.join(__dirname, '..', 'dist');
-const basePath = (process.env.BASE_PATH || '').replace(/\/$/, ''); // '' or '/oracle-data-v2'
+const basePath = (process.env.BASE_PATH || '').replace(/\/$/, ''); // '' or '/app'
 
-// Static assets (JS/CSS/images) live under <basePath>/assets and similar
+// Static assets (JS/CSS/images)
 app.use(`${basePath}`, express.static(distPath));
 
-// SPA fallback — all non-API routes under the base path serve index.html
+// SPA fallback — all non-API routes serve index.html
 app.get(`${basePath}/{*path}`, (req, res) => {
   res.sendFile(path.join(distPath, 'index.html'));
 });
 
-// If a base path is configured, redirect the bare root to it for convenience
-if (basePath) {
-  app.get('/', (req, res) => res.redirect(basePath));
-}
+// NOTE: no root '/' redirect here. Behind a prefix-stripping proxy the app sees '/',
+// and redirecting '/' -> BASE_PATH caused an infinite redirect loop with Apache's
+// RedirectMatch. The proxy is responsible for the trailing-slash redirect instead.
 
 app.use((err, req, res, next) => {
   console.error(err.stack);
